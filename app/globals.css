@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%; /* White background */
+    --foreground: 142 76% 36%; /* Green text */
+    --card: 0 0% 100%; /* White cards */
+    --card-foreground: 142 76% 36%; /* Green text on cards */
+    --popover: 0 0% 100%; /* White popover */
+    --popover-foreground: 142 76% 36%; /* Green text on popover */
+    --primary: 142 76% 36%; /* Green primary */
+    --primary-foreground: 0 0% 100%; /* White text on green */
+    --secondary: 210 40% 96%; /* Light gray secondary */
+    --secondary-foreground: 142 76% 36%; /* Green text on gray */
+    --muted: 210 40% 96%; /* Light gray muted */
+    --muted-foreground: 142 76% 36%; /* Green muted text */
+    --accent: 210 40% 96%; /* Light gray accent */
+    --accent-foreground: 142 76% 36%; /* Green accent text */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 40% 90%; /* Light gray border */
+    --input: 210 40% 96%; /* Light gray input */
+    --ring: 142 76% 36%; /* Green focus ring */
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 142 76% 5%; /* Dark green background */
+    --foreground: 0 0% 100%; /* White text */
+    --card: 142 76% 8%; /* Dark green cards */
+    --card-foreground: 0 0% 100%; /* White text on cards */
+    --popover: 142 76% 8%; /* Dark green popover */
+    --popover-foreground: 0 0% 100%; /* White text on popover */
+    --primary: 142 76% 50%; /* Lighter green primary */
+    --primary-foreground: 142 76% 5%; /* Dark green text on light green */
+    --secondary: 142 76% 15%; /* Dark green secondary */
+    --secondary-foreground: 0 0% 100%; /* White text on dark green */
+    --muted: 142 76% 15%; /* Dark green muted */
+    --muted-foreground: 0 0% 80%; /* Light gray muted text */
+    --accent: 142 76% 15%; /* Dark green accent */
+    --accent-foreground: 0 0% 100%; /* White accent text */
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 142 76% 20%; /* Dark green border */
+    --input: 142 76% 15%; /* Dark green input */
+    --ring: 142 76% 50%; /* Light green focus ring */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
