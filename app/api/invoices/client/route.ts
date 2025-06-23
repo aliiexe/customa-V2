@@ -5,7 +5,8 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const clientId = searchParams.get("clientId")
-    const status = searchParams.get("status")
+    const paymentStatus = searchParams.get("payment_status")
+    const deliveryStatus = searchParams.get("delivery_status")
     const startDate = searchParams.get("startDate")
     const endDate = searchParams.get("endDate")
 
@@ -30,9 +31,14 @@ export async function GET(request: Request) {
       params.push(clientId)
     }
 
-    if (status) {
-      sql += " AND i.status = ?"
-      params.push(status)
+    if (paymentStatus) {
+      sql += " AND i.payment_status = ?"
+      params.push(paymentStatus)
+    }
+
+    if (deliveryStatus) {
+      sql += " AND i.delivery_status = ?"
+      params.push(deliveryStatus)
     }
 
     if (startDate) {
@@ -46,7 +52,7 @@ export async function GET(request: Request) {
     }
 
     sql +=
-      " GROUP BY i.id, i.clientId, i.quoteId, i.totalAmount, i.dateCreated, i.deliveryDate, i.status, i.createdAt, i.updatedAt, c.name"
+      " GROUP BY i.id, c.name, i.clientId, i.quoteId, i.totalAmount, i.dateCreated, i.deliveryDate, i.payment_status, i.delivery_status, i.createdAt, i.updatedAt"
     sql += " ORDER BY i.dateCreated DESC"
 
     const invoices = await query(sql, params)
@@ -78,15 +84,16 @@ export async function POST(request: Request) {
       // Insert invoice header
       const [invoiceResult] = await connection.execute(
         `INSERT INTO client_invoices (
-          clientId, quoteId, totalAmount, dateCreated, deliveryDate, status
-        ) VALUES (?, ?, ?, ?, ?, ?)`,
+          clientId, quoteId, totalAmount, dateCreated, deliveryDate, payment_status, delivery_status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
           invoice.clientId,
           invoice.quoteId || null,
           invoice.totalAmount,
           invoice.dateCreated || new Date(),
           invoice.deliveryDate,
-          invoice.status || "UNPAID",
+          invoice.payment_status || "UNPAID",
+          invoice.delivery_status || "IN_PROCESS",
         ],
       )
 
