@@ -62,8 +62,8 @@ export async function POST(request: Request) {
     const sql = `
       INSERT INTO products (
         name, reference, supplierPrice, sellingPrice, 
-        stockQuantity, description, supplierId, categoryId
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        stockQuantity, provisionalStock, description, supplierId, categoryId
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
 
     const params = [
@@ -72,6 +72,7 @@ export async function POST(request: Request) {
       product.supplierPrice,
       product.sellingPrice,
       product.stockQuantity,
+      product.provisionalStock ?? 0,
       product.description,
       product.supplierId,
       product.categoryId,

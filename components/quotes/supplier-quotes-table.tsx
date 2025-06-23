@@ -1,59 +1,41 @@
 "use client";
 
-import { useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Edit, Eye, FileText, CheckCircle, XCircle } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import Link from "next/link";
-import { QuoteStatus } from "@/types/quote-models";
-import { format } from "date-fns";
-
-// Mock data - would be fetched from API in real implementation
-const supplierQuotes = [
-  {
-    id: 1,
-    supplierName: "TechSupplier Inc.",
-    totalAmount: 1200.0,
-    dateCreated: new Date("2023-11-20"),
-    validUntil: new Date("2023-12-20"),
-    status: QuoteStatus.PENDING,
-    itemsCount: 2,
-    notes: "Bulk purchase request",
-  },
-  {
-    id: 2,
-    supplierName: "DisplayTech Ltd.",
-    totalAmount: 850.5,
-    dateCreated: new Date("2023-11-18"),
-    validUntil: new Date("2023-12-18"),
-    status: QuoteStatus.APPROVED,
-    itemsCount: 1,
-    notes: "Standard supplier pricing",
-  },
-  {
-    id: 3,
-    supplierName: "SoundWave Co.",
-    totalAmount: 2100.0,
-    dateCreated: new Date("2023-11-15"),
-    validUntil: new Date("2023-12-15"),
-    status: QuoteStatus.CONVERTED,
-    itemsCount: 3,
-    notes: "Converted to Purchase Order #PO-0003",
-    convertedInvoiceId: 3,
-  },
-];
+import { useState, useEffect } from "react"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
+import { Edit, Eye, FileText, CheckCircle, XCircle, Send } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import Link from "next/link"
+import { QuoteStatus } from "@/types/quote-models"
+import { format } from "date-fns"
+import { useRouter } from "next/navigation"
 
 export default function SupplierQuotesTable() {
-  const [sortColumn, setSortColumn] = useState("dateCreated");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const router = useRouter()
+  const [quotes, setQuotes] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [sortColumn, setSortColumn] = useState("dateCreated")
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
+
+  useEffect(() => {
+    fetchQuotes()
+  }, [])
+
+  const fetchQuotes = async () => {
+    try {
+      const response = await fetch("/api/quotes/supplier")
+      if (!response.ok) {
+        throw new Error("Failed to fetch quotes")
+      }
+      const data = await response.json()
+      setQuotes(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred while fetching quotes")
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
@@ -64,9 +46,9 @@ export default function SupplierQuotesTable() {
     }
   };
 
-  const sortedQuotes = [...supplierQuotes].sort((a: any, b: any) => {
-    const aValue = a[sortColumn];
-    const bValue = b[sortColumn];
+  const sortedQuotes = [...quotes].sort((a: any, b: any) => {
+    const aValue = a[sortColumn]
+    const bValue = b[sortColumn]
 
     if (aValue instanceof Date && bValue instanceof Date) {
       return sortDirection === "asc"
@@ -108,17 +90,116 @@ export default function SupplierQuotesTable() {
     }
   };
 
-  const handleConvertToInvoice = (quoteId: number) => {
-    console.log(`Converting supplier quote ${quoteId} to purchase order`);
-  };
+  const handleConvertToInvoice = async (quoteId: number) => {
+    try {
+      const response = await fetch(`/api/quotes/supplier/${quoteId}/convert`, {
+        method: "POST",
+      })
+      
+      if (!response.ok) {
+        throw new Error("Failed to convert quote to invoice")
+      }
+      
+      // Refresh the quotes list and router
+      fetchQuotes()
+      router.refresh()
+    } catch (err) {
+      console.error("Error converting quote to invoice:", err)
+      // You might want to show an error toast here
+    }
+  }
 
-  const handleApproveQuote = (quoteId: number) => {
-    console.log(`Approving supplier quote ${quoteId}`);
-  };
+  const handleApproveQuote = async (quoteId: number) => {
+    try {
+      const response = await fetch(`/api/quotes/supplier/${quoteId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: QuoteStatus.APPROVED }),
+      })
+      
+      if (!response.ok) {
+        throw new Error("Failed to approve quote")
+      }
+      
+      // Refresh the quotes list and router
+      fetchQuotes()
+      router.refresh()
+    } catch (err) {
+      console.error("Error approving quote:", err)
+      // You might want to show an error toast here
+    }
+  }
 
-  const handleRejectQuote = (quoteId: number) => {
-    console.log(`Rejecting supplier quote ${quoteId}`);
-  };
+  const handleRejectQuote = async (quoteId: number) => {
+    try {
+      const response = await fetch(`/api/quotes/supplier/${quoteId}/status`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: QuoteStatus.REJECTED }),
+      })
+      
+      if (!response.ok) {
+        throw new Error("Failed to reject quote")
+      }
+      
+      // Refresh the quotes list and router
+      fetchQuotes()
+      router.refresh()
+    } catch (err) {
+      console.error("Error rejecting quote:", err)
+      // You might want to show an error toast here
+    }
+  }
+
+  const handleSendToSupplier = async (quoteId: number) => {
+    try {
+      const response = await fetch(`/api/quotes/supplier/${quoteId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: QuoteStatus.PENDING }),
+      })
+      if (response.ok) {
+        fetchQuotes()
+      } else {
+        // Optionally show error
+      }
+    } catch (error) {
+      // Optionally show error
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="rounded-md border bg-white p-8 text-center">
+        <div className="text-gray-500">Loading quotes...</div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-md border bg-white p-8">
+        <div className="text-red-500">{error}</div>
+        <Button onClick={fetchQuotes} className="mt-4">
+          Retry
+        </Button>
+      </div>
+    )
+  }
+
+  if (quotes.length === 0) {
+    return (
+      <div className="rounded-md border bg-white p-8 text-center">
+        <div className="text-gray-500">No supplier quotes found</div>
+      </div>
+    )
+  }
 
   return (
     <div className="rounded-md border bg-white shadow-sm">
@@ -176,25 +257,17 @@ export default function SupplierQuotesTable() {
         <TableBody>
           {sortedQuotes.map((quote) => (
             <TableRow key={quote.id} className="hover:bg-gray-50">
-              <TableCell className="font-medium text-primary">
-                SQU-{quote.id.toString().padStart(4, "0")}
-              </TableCell>
-              <TableCell className="text-gray-700">
-                {quote.supplierName}
-              </TableCell>
+              <TableCell className="font-medium text-green-600">SQU-{quote.id.toString().padStart(4, "0")}</TableCell>
+              <TableCell className="text-gray-700">{quote.supplierName}</TableCell>
               <TableCell className="text-right text-gray-700">
-                ${quote.totalAmount.toFixed(2)}
+                ${(Number(quote.totalAmount) || 0).toFixed(2)}
               </TableCell>
-              <TableCell className="text-gray-700">
-                {format(quote.dateCreated, "MMM dd, yyyy")}
-              </TableCell>
-              <TableCell className="text-gray-700">
-                {format(quote.validUntil, "MMM dd, yyyy")}
-              </TableCell>
+              <TableCell className="text-gray-700">{format(new Date(quote.dateCreated), "MMM dd, yyyy")}</TableCell>
+              <TableCell className="text-gray-700">{format(new Date(quote.validUntil), "MMM dd, yyyy")}</TableCell>
               <TableCell>{getStatusBadge(quote.status)}</TableCell>
               <TableCell>
                 <Badge variant="outline" className="text-gray-600">
-                  {quote.itemsCount} items
+                  {quote.itemsCount || 0} items
                 </Badge>
               </TableCell>
               <TableCell>
@@ -210,7 +283,7 @@ export default function SupplierQuotesTable() {
                     </Link>
                   </Button>
 
-                  {quote.status === QuoteStatus.PENDING && (
+                  {quote.status === QuoteStatus.DRAFT && (
                     <>
                       <Button
                         variant="outline"
@@ -225,30 +298,33 @@ export default function SupplierQuotesTable() {
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => handleApproveQuote(quote.id)}
+                        onClick={() => handleSendToSupplier(quote.id)}
                         className="border-green-300 hover:bg-green-50"
                       >
-                        <CheckCircle className="h-4 w-4 text-primary" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleRejectQuote(quote.id)}
-                        className="border-red-300 hover:bg-red-50"
-                      >
-                        <XCircle className="h-4 w-4 text-red-600" />
+                        <Send className="h-4 w-4 text-green-600" />
                       </Button>
                     </>
                   )}
 
-                  {quote.status === QuoteStatus.APPROVED && (
+                  {quote.status === QuoteStatus.PENDING && (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleApproveQuote(quote.id)}
+                      className="border-blue-300 hover:bg-blue-50"
+                    >
+                      <CheckCircle className="h-4 w-4 text-blue-600" />
+                    </Button>
+                  )}
+
+                  {(quote.status === QuoteStatus.CONFIRMED || quote.status === QuoteStatus.APPROVED) && (
                     <Button
                       variant="outline"
                       size="icon"
                       onClick={() => handleConvertToInvoice(quote.id)}
-                      className="border-blue-300 hover:bg-blue-50"
+                      className="border-purple-300 hover:bg-purple-50"
                     >
-                      <FileText className="h-4 w-4 text-blue-600" />
+                      <FileText className="h-4 w-4 text-purple-600" />
                     </Button>
                   )}
 

@@ -93,6 +93,7 @@ export default function ProductsTable() {
               <TableHead>Name</TableHead>
               <TableHead>Category</TableHead>
               <TableHead className="text-right">Stock</TableHead>
+              <TableHead className="text-right">Provisional</TableHead>
               <TableHead className="text-right">Price</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -114,6 +115,9 @@ export default function ProductsTable() {
                   <TableCell>{product.categoryName || "Unknown"}</TableCell>
                   <TableCell className="text-right">
                     {product.stockQuantity}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {product.provisionalStock ?? 0}
                   </TableCell>
                   <TableCell className="text-right">
                     ${Number(product.sellingPrice).toFixed(2)}

@@ -11,7 +11,7 @@ export async function GET(request: Request) {
         s.*,
         COUNT(DISTINCT p.id) as productCount,
         COUNT(DISTINCT si.id) as invoiceCount,
-        SUM(CASE WHEN si.status = 'UNPAID' THEN si.totalAmount ELSE 0 END) as unpaidAmount
+        SUM(CASE WHEN si.payment_status = 'UNPAID' THEN si.totalAmount ELSE 0 END) as unpaidAmount
       FROM 
         suppliers s
       LEFT JOIN 

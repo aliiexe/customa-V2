@@ -36,6 +36,7 @@ export interface Product {
   supplierPrice: number
   sellingPrice: number
   stockQuantity: number
+  provisionalStock: number
   description?: string
   supplierId: number
   categoryId: number
