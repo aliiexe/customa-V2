@@ -1,43 +1,45 @@
-import { NextResponse } from "next/server"
-import { query } from "@/lib/db"
+import { NextResponse } from "next/server";
+import { query } from "@/lib/db";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url)
-    const search = searchParams.get("search")
+    // Get total revenue
+    const totalResult = await query(
+      "SELECT SUM(totalAmount) as totalRevenue FROM client_invoices WHERE status = 'PAID'"
+    );
+    const totalRevenue =
+      Array.isArray(totalResult) && totalResult[0]
+        ? Number((totalResult[0] as any).totalRevenue) || 0
+        : 0;
 
-    let sql = `
-      SELECT 
-        c.*,
-        COUNT(DISTINCT ci.id) as invoiceCount,
-        SUM(CASE WHEN ci.status = 'UNPAID' THEN ci.totalAmount ELSE 0 END) as unpaidAmount,
-        COUNT(DISTINCT cq.id) as quoteCount
-      FROM 
-        clients c
-      LEFT JOIN 
-        client_invoices ci ON c.id = ci.clientId
-      LEFT JOIN 
-        client_quotes cq ON c.id = cq.clientId
-      WHERE 1=1
-    `
+    // Get revenue per client
+    const clientsResult = await query(`
+      SELECT c.id, c.name, SUM(i.totalAmount) as clientRevenue
+      FROM clients c
+      JOIN client_invoices i ON c.id = i.clientId AND i.status = 'PAID'
+      GROUP BY c.id, c.name
+      ORDER BY clientRevenue DESC
+    `);
 
-    const params: any[] = []
+    // Format with percentage
+    const contributions = Array.isArray(clientsResult)
+      ? clientsResult.map((row: any) => ({
+          id: row.id,
+          name: row.name,
+          revenue: Number(row.clientRevenue),
+          percentage: totalRevenue
+            ? Number(((row.clientRevenue / totalRevenue) * 100).toFixed(2))
+            : 0,
+        }))
+      : [];
 
-    if (search) {
-      sql += " AND (c.name LIKE ? OR c.email LIKE ? OR c.phoneNumber LIKE ?)"
-      const searchTerm = `%${search}%`
-      params.push(searchTerm, searchTerm, searchTerm)
-    }
-
-    sql += " GROUP BY c.id, c.name, c.address, c.email, c.phoneNumber, c.iban, c.createdAt, c.updatedAt"
-    sql += " ORDER BY c.name ASC"
-
-    const clients = await query(sql, params)
-
-    return NextResponse.json(clients)
+    return NextResponse.json(contributions);
   } catch (error) {
-    console.error("Error fetching clients:", error)
-    return NextResponse.json({ error: "Failed to fetch clients" }, { status: 500 })
+    console.error("Error fetching client contributions:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch client contributions" },
+      { status: 500 }
+    );
   }
 }
 

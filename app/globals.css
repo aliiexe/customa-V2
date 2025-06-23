@@ -5,47 +5,79 @@
 @layer base {
   :root {
     --background: 0 0% 100%; /* White background */
-    --foreground: 142 76% 36%; /* Green text */
+    --foreground: 142 76% 36%; /* text-primary text */
     --card: 0 0% 100%; /* White cards */
-    --card-foreground: 142 76% 36%; /* Green text on cards */
+    --card-foreground: 142 76% 36%; /* text-primary text on cards */
     --popover: 0 0% 100%; /* White popover */
-    --popover-foreground: 142 76% 36%; /* Green text on popover */
-    --primary: 142 76% 36%; /* Green primary */
-    --primary-foreground: 0 0% 100%; /* White text on green */
+    --popover-foreground: 142 76% 36%; /* text-primary text on popover */
     --secondary: 210 40% 96%; /* Light gray secondary */
-    --secondary-foreground: 142 76% 36%; /* Green text on gray */
+    --secondary-foreground: 142 76% 36%; /* text-primary text on gray */
     --muted: 210 40% 96%; /* Light gray muted */
-    --muted-foreground: 142 76% 36%; /* Green muted text */
+    --muted-foreground: 142 76% 36%; /* text-primary muted text */
     --accent: 210 40% 96%; /* Light gray accent */
-    --accent-foreground: 142 76% 36%; /* Green accent text */
+    --accent-foreground: 142 76% 36%; /* text-primary accent text */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     --border: 210 40% 90%; /* Light gray border */
     --input: 210 40% 96%; /* Light gray input */
-    --ring: 142 76% 36%; /* Green focus ring */
+    --ring: 142 76% 36%; /* text-primary focus ring */
     --radius: 0.5rem;
+
+    /* Default theme (darker green) */
+    --primary: 142 76% 32%;
+    --primary-hsl: 142, 76%, 32%;
+    --primary-rgb: 19, 143, 65;
+    --primary-color: #138F41;
   }
 
   .dark {
-    --background: 142 76% 5%; /* Dark green background */
+    --background: 142 76% 5%; /* Dark text-primary background */
     --foreground: 0 0% 100%; /* White text */
-    --card: 142 76% 8%; /* Dark green cards */
+    --card: 142 76% 8%; /* Dark text-primary cards */
     --card-foreground: 0 0% 100%; /* White text on cards */
-    --popover: 142 76% 8%; /* Dark green popover */
+    --popover: 142 76% 8%; /* Dark text-primary popover */
     --popover-foreground: 0 0% 100%; /* White text on popover */
-    --primary: 142 76% 50%; /* Lighter green primary */
-    --primary-foreground: 142 76% 5%; /* Dark green text on light green */
-    --secondary: 142 76% 15%; /* Dark green secondary */
-    --secondary-foreground: 0 0% 100%; /* White text on dark green */
-    --muted: 142 76% 15%; /* Dark green muted */
+    --primary: 142 76% 30%; /* Darker green for dark mode */
+    --primary-foreground: 142 76% 5%; /* Dark text-primary text on light text-primary */
+    --secondary: 142 76% 15%; /* Dark text-primary secondary */
+    --secondary-foreground: 0 0% 100%; /* White text on dark text-primary */
+    --muted: 142 76% 15%; /* Dark text-primary muted */
     --muted-foreground: 0 0% 80%; /* Light gray muted text */
-    --accent: 142 76% 15%; /* Dark green accent */
+    --accent: 142 76% 15%; /* Dark text-primary accent */
     --accent-foreground: 0 0% 100%; /* White accent text */
     --destructive: 0 62% 30%;
     --destructive-foreground: 0 0% 100%;
-    --border: 142 76% 20%; /* Dark green border */
-    --input: 142 76% 15%; /* Dark green input */
-    --ring: 142 76% 50%; /* Light green focus ring */
+    --border: 142 76% 20%; /* Dark text-primary border */
+    --input: 142 76% 15%; /* Dark text-primary input */
+    --ring: 142 76% 50%; /* Light text-primary focus ring */
+  }
+
+  [data-theme="red"] {
+    --primary: 359 99% 65%;
+    --primary-hsl: 359, 99%, 65%;
+    --primary-rgb: 254, 77, 80;
+    --primary-color: #FE4D50;
+  }
+
+  [data-theme="purple"] {
+    --primary: 264 99% 65%;
+    --primary-hsl: 264, 99%, 65%;
+    --primary-rgb: 140, 77, 254;
+    --primary-color: #8C4DFE;
+  }
+
+  [data-theme="blue"] {
+    --primary: 209 99% 65%;
+    --primary-hsl: 209, 99%, 65%;
+    --primary-rgb: 77, 174, 254;
+    --primary-color: #4DAEFE;
+  }
+
+  [data-theme="text-primary"] {
+    --primary: 142 76% 30%; /* Darker default for custom theme */
+    --primary-hsl: 142, 76%, 30%;
+    --primary-rgb: 18, 134, 60;
+    --primary-color: #12863C;
   }
 }
 

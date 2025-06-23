@@ -20,8 +20,10 @@ body {
     --card-foreground: 0 0% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 142 77% 36%;
+    --primary-hsl: 142, 77%, 36%;
+    --primary-rgb: 22, 162, 73;
+    --primary-color: #16A249;
     --secondary: 0 0% 96.1%;
     --secondary-foreground: 0 0% 9%;
     --muted: 0 0% 96.1%;
@@ -81,6 +83,13 @@ body {
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  [data-theme="green"] {
+    --primary: 142 77% 36%;
+    --primary-hsl: 142, 77%, 36%;
+    --primary-rgb: 22, 162, 73;
+    --primary-color: #16A249;
   }
 }
 

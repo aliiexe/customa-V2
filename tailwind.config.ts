@@ -3,54 +3,47 @@ import type { Config } from "tailwindcss"
 const config: Config = {
   darkMode: ["class"],
   content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    "*.{js,ts,jsx,tsx,mdx}",
+    "./app/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./pages/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
   ],
   theme: {
-    container: {
-      center: true,
-      padding: "2rem",
-      screens: {
-        "2xl": "1400px",
-      },
-    },
     extend: {
       colors: {
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-        primary: {
-          DEFAULT: "hsl(142, 76%, 36%)", // Green primary
-          foreground: "hsl(0, 0%, 100%)", // White text on green
-        },
-        secondary: {
-          DEFAULT: "hsl(210, 40%, 96%)", // Light gray
-          foreground: "hsl(142, 76%, 36%)", // Green text on gray
-        },
-        destructive: {
-          DEFAULT: "hsl(0, 84%, 60%)",
-          foreground: "hsl(0, 0%, 100%)",
-        },
-        muted: {
-          DEFAULT: "hsl(210, 40%, 96%)", // Light gray
-          foreground: "hsl(142, 76%, 36%)", // Green text
-        },
-        accent: {
-          DEFAULT: "hsl(210, 40%, 96%)", // Light gray
-          foreground: "hsl(142, 76%, 36%)", // Green text
-        },
-        popover: {
-          DEFAULT: "hsl(0, 0%, 100%)", // White
-          foreground: "hsl(142, 76%, 36%)", // Green text
-        },
-        card: {
-          DEFAULT: "hsl(0, 0%, 100%)", // White
-          foreground: "hsl(142, 76%, 36%)", // Green text
-        },
       },
       borderRadius: {
         lg: "var(--radius)",

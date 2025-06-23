@@ -53,8 +53,13 @@ export default function SupplierReports() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold text-primary">Supplier Reports</h2>
-        <Button variant="outline" className="border-primary hover:bg-primary/10">
+        <h2 className="text-2xl font-semibold text-primary">
+          Supplier Reports
+        </h2>
+        <Button
+          variant="outline"
+          className="border-primary hover:bg-primary/10"
+        >
           <Download className="mr-2 h-4 w-4" />
           Export
         </Button>
@@ -69,7 +74,9 @@ export default function SupplierReports() {
             {loading ? (
               <Skeleton className="h-8 w-20" />
             ) : (
-              <div className="text-3xl font-bold text-primary">{data?.totalSuppliers || 0}</div>
+              <div className="text-3xl font-bold text-primary">
+                {data?.totalSuppliers || 0}
+              </div>
             )}
           </CardContent>
         </Card>
@@ -81,7 +88,9 @@ export default function SupplierReports() {
             {loading ? (
               <Skeleton className="h-8 w-20" />
             ) : (
-              <div className="text-3xl font-bold text-primary">{data?.activePurchaseOrders || 0}</div>
+              <div className="text-3xl font-bold text-primary">
+                {data?.activePurchaseOrders || 0}
+              </div>
             )}
           </CardContent>
         </Card>

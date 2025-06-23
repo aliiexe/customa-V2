@@ -90,9 +90,7 @@ export function MonthlySalesTable({ year }: MonthlySalesTableProps) {
             </TableCell>
             <TableCell className="text-right">
               <span
-                className={
-                  row.growth >= 0 ? "text-green-600" : "text-red-600"
-                }
+                className={row.growth >= 0 ? "text-primary" : "text-red-600"}
               >
                 {row.growth.toFixed(2)}%
               </span>

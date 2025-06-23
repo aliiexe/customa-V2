@@ -105,7 +105,7 @@ export default function SalesReports() {
                   <span
                     className={`text-sm ml-2 ${
                       salesData.revenueGrowth >= 0
-                        ? "text-green-600"
+                        ? "text-primary"
                         : "text-red-600"
                     }`}
                   >
@@ -128,7 +128,7 @@ export default function SalesReports() {
             <CardDescription>Total Orders</CardDescription>
             <CardTitle className="text-3xl font-bold text-primary">
               243
-              <span className="text-sm text-green-600 ml-2">
+              <span className="text-sm text-primary ml-2">
                 <ArrowUpRight className="h-4 w-4 inline" /> +8%
               </span>
             </CardTitle>
@@ -144,7 +144,7 @@ export default function SalesReports() {
             <CardDescription>Average Order Value</CardDescription>
             <CardTitle className="text-3xl font-bold text-primary">
               $528.52
-              <span className="text-sm text-green-600 ml-2">
+              <span className="text-sm text-primary ml-2">
                 <TrendingUp className="h-4 w-4 inline" /> +4%
               </span>
             </CardTitle>

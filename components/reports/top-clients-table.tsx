@@ -92,7 +92,7 @@ export function TopClientsTable() {
                 variant={client.status === "active" ? "default" : "secondary"}
                 className={
                   client.status === "active"
-                    ? "bg-green-100 text-green-800 hover:bg-green-200"
+                    ? "bg-primary text-green-800 hover:bg-green-200"
                     : "bg-gray-100 text-gray-800 hover:bg-gray-200"
                 }
               >

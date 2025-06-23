@@ -99,7 +99,7 @@ export function ProductInventoryTable() {
                 }
                 className={
                   product.status === "in-stock"
-                    ? "bg-green-100 text-green-800 hover:bg-green-200"
+                    ? "bg-primary text-green-800 hover:bg-green-200"
                     : product.status === "low-stock"
                     ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
                     : "bg-red-100 text-red-800 hover:bg-red-200"
