@@ -26,8 +26,8 @@ import {
 } from "@/components/ui/alert-dialog";
 
 interface SupplierWithStats extends Supplier {
-  productsCount: number;
-  totalOrders: number;
+  productCount: number;
+  invoiceCount: number;
 }
 
 export default function SuppliersTable() {
@@ -147,18 +147,18 @@ export default function SuppliersTable() {
               <TableHead>Phone</TableHead>
               <TableHead
                 className="cursor-pointer text-center"
-                onClick={() => handleSort("productsCount")}
+                onClick={() => handleSort("productCount")}
               >
                 Products{" "}
-                {sortColumn === "productsCount" &&
+                {sortColumn === "productCount" &&
                   (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead
                 className="cursor-pointer text-center"
-                onClick={() => handleSort("totalOrders")}
+                onClick={() => handleSort("invoiceCount")}
               >
                 Orders{" "}
-                {sortColumn === "totalOrders" &&
+                {sortColumn === "invoiceCount" &&
                   (sortDirection === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead>Actions</TableHead>

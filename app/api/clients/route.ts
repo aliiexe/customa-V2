@@ -10,7 +10,7 @@ export async function GET(request: Request) {
       SELECT 
         c.*,
         COUNT(DISTINCT ci.id) as invoiceCount,
-        SUM(CASE WHEN ci.status = 'UNPAID' THEN ci.totalAmount ELSE 0 END) as unpaidAmount,
+        SUM(CASE WHEN ci.payment_status = 'UNPAID' THEN ci.totalAmount ELSE 0 END) as unpaidAmount,
         COUNT(DISTINCT cq.id) as quoteCount
       FROM 
         clients c

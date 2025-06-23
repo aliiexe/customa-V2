@@ -28,6 +28,7 @@ const mockProduct: Product = {
   supplierPrice: 800,
   sellingPrice: 1200,
   stockQuantity: 24,
+  provisionalStock: 10,
   description: "High-performance laptop for professionals",
   supplierId: 1,
   categoryId: 1,
@@ -43,6 +44,7 @@ const formSchema = z.object({
   supplierPrice: z.coerce.number().min(0, "Price cannot be negative"),
   sellingPrice: z.coerce.number().min(0, "Price cannot be negative"),
   stockQuantity: z.coerce.number().int().min(0, "Stock cannot be negative"),
+  provisionalStock: z.coerce.number().int().min(0, "Provisional stock cannot be negative").default(0),
   description: z.string().optional(),
   supplierId: z.string().min(1, "Please select a supplier"),
   categoryId: z.string().min(1, "Please select a category"),
@@ -70,6 +72,7 @@ export default function ProductForm({
       supplierPrice: 0,
       sellingPrice: 0,
       stockQuantity: 0,
+      provisionalStock: 0,
       description: "",
       supplierId: "",
       categoryId: "",
@@ -118,6 +121,7 @@ export default function ProductForm({
               supplierPrice: product.supplierPrice,
               sellingPrice: product.sellingPrice,
               stockQuantity: product.stockQuantity,
+              provisionalStock: product.provisionalStock ?? 0,
               description: product.description || "",
               supplierId: product.supplierId.toString(),
               categoryId: product.categoryId.toString(),
@@ -303,6 +307,20 @@ export default function ProductForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Stock Quantity</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="0" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="provisionalStock"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Provisional Stock</FormLabel>
                     <FormControl>
                       <Input type="number" placeholder="0" {...field} />
                     </FormControl>
