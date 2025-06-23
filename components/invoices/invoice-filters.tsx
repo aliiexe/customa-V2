@@ -1,119 +1,77 @@
 "use client"
 
-import { useState } from "react"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
-import { Search } from "lucide-react"
-import { InvoiceStatus } from "@/types/models"
+import { Input } from "@/components/ui/input"
 
 interface InvoiceFiltersProps {
-  type: "client" | "supplier"
+  clients: { id: number; name: string }[]
+  filters: {
+    clientId: string
+    payment_status: string
+    delivery_status: string
+    startDate: string
+    endDate: string
+  }
+  onFilterChange: (key: string, value: string) => void
+  onResetFilters: () => void
 }
 
-export default function InvoiceFilters({ type }: InvoiceFiltersProps) {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedStatus, setSelectedStatus] = useState("")
-  const [selectedClient, setSelectedClient] = useState("")
-  const [dateFrom, setDateFrom] = useState("")
-  const [dateTo, setDateTo] = useState("")
-
-  // Mock data - would be fetched from API in real implementation
-  const clients = [
-    { id: 1, name: "Acme Corporation" },
-    { id: 2, name: "Global Tech Solutions" },
-    { id: 3, name: "StartUp Dynamics" },
-  ]
-
-  const suppliers = [
-    { id: 1, name: "TechSupplier Inc." },
-    { id: 2, name: "DisplayTech Ltd." },
-    { id: 3, name: "SoundWave Co." },
-  ]
-
-  const entities = type === "client" ? clients : suppliers
-  const entityLabel = type === "client" ? "Client" : "Supplier"
-
-  const handleSearch = () => {
-    // In a real implementation, this would trigger an API call with the filters
-    console.log({
-      searchTerm,
-      selectedStatus,
-      selectedClient,
-      dateFrom,
-      dateTo,
-    })
-  }
-
-  const handleReset = () => {
-    setSearchTerm("")
-    setSelectedStatus("")
-    setSelectedClient("")
-    setDateFrom("")
-    setDateTo("")
-  }
-
+export function InvoiceFilters({ clients, filters, onFilterChange, onResetFilters }: InvoiceFiltersProps) {
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <div className="flex w-full items-center space-x-2">
-          <Input
-            placeholder={`Search ${type} invoices...`}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <Button type="submit" size="icon" onClick={handleSearch}>
-            <Search className="h-4 w-4" />
-          </Button>
-        </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 p-4 border-b">
+      <Select value={filters.clientId} onValueChange={(value) => onFilterChange("clientId", value)}>
+        <SelectTrigger>
+          <SelectValue placeholder="All Clients" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All Clients</SelectItem>
+          {clients.map((client) => (
+            <SelectItem key={client.id} value={client.id.toString()}>
+              {client.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
-        <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-          <SelectTrigger>
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value={InvoiceStatus.PAID}>Paid</SelectItem>
-            <SelectItem value={InvoiceStatus.UNPAID}>Unpaid</SelectItem>
-          </SelectContent>
-        </Select>
+      <Select value={filters.payment_status} onValueChange={(value) => onFilterChange("payment_status", value)}>
+        <SelectTrigger>
+          <SelectValue placeholder="Payment Status" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All Payment Statuses</SelectItem>
+          <SelectItem value="UNPAID">Unpaid</SelectItem>
+          <SelectItem value="PAID">Paid</SelectItem>
+        </SelectContent>
+      </Select>
+      
+      <Select value={filters.delivery_status} onValueChange={(value) => onFilterChange("delivery_status", value)}>
+        <SelectTrigger>
+          <SelectValue placeholder="Delivery Status" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All Delivery Statuses</SelectItem>
+          <SelectItem value="IN_PROCESS">In Process</SelectItem>
+          <SelectItem value="SENDING">Sending</SelectItem>
+          <SelectItem value="DELIVERED">Delivered</SelectItem>
+        </SelectContent>
+      </Select>
 
-        <Select value={selectedClient} onValueChange={setSelectedClient}>
-          <SelectTrigger>
-            <SelectValue placeholder={`Select ${entityLabel}`} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All {entityLabel}s</SelectItem>
-            {entities.map((entity) => (
-              <SelectItem key={entity.id} value={entity.id.toString()}>
-                {entity.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <div className="space-y-2">
-          <Label htmlFor="dateFrom" className="text-sm">
-            From Date
-          </Label>
-          <Input id="dateFrom" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="dateTo" className="text-sm">
-            To Date
-          </Label>
-          <Input id="dateTo" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
-        </div>
-      </div>
-
-      <div className="flex justify-end space-x-2">
-        <Button variant="outline" onClick={handleReset}>
-          Reset Filters
-        </Button>
-        <Button onClick={handleSearch}>Apply Filters</Button>
-      </div>
+      <Input
+        type="date"
+        placeholder="Start Date"
+        value={filters.startDate}
+        onChange={(e) => onFilterChange("startDate", e.target.value)}
+      />
+      <Input
+        type="date"
+        placeholder="End Date"
+        value={filters.endDate}
+        onChange={(e) => onFilterChange("endDate", e.target.value)}
+      />
+      <Button onClick={onResetFilters} variant="outline" className="w-full">
+        Reset
+      </Button>
     </div>
   )
 }

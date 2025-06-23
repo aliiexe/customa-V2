@@ -4,6 +4,7 @@ import { QuoteStatus } from "@/types/quote-models"
 
 export async function GET(request: Request) {
   try {
+    console.log("GET /api/quotes/client called")
     const { searchParams } = new URL(request.url)
     const status = searchParams.get("status")
     const clientId = searchParams.get("clientId")
@@ -11,14 +12,12 @@ export async function GET(request: Request) {
     const dateFrom = searchParams.get("dateFrom")
     const dateTo = searchParams.get("dateTo")
 
+    console.log("Search params:", { status, clientId, search, dateFrom, dateTo })
+
     let sql = `
-      SELECT cq.*, c.name as clientName,
-             COUNT(cqi.id) as itemsCount,
-             ci.id as convertedInvoiceId
+      SELECT cq.*, c.name as clientName, cq.convertedInvoiceId
       FROM client_quotes cq 
       LEFT JOIN clients c ON cq.clientId = c.id 
-      LEFT JOIN client_quote_items cqi ON cq.id = cqi.quoteId
-      LEFT JOIN client_invoices ci ON cq.id = ci.quoteId
       WHERE 1=1
     `
 
@@ -49,21 +48,25 @@ export async function GET(request: Request) {
       params.push(dateTo)
     }
 
-    sql += " GROUP BY cq.id ORDER BY cq.dateCreated DESC"
+    sql += " ORDER BY cq.dateCreated DESC"
+
+    console.log("SQL query:", sql)
+    console.log("SQL params:", params)
 
     const quotes = await query(sql, params)
+    console.log("Quotes fetched:", quotes)
 
     return NextResponse.json(quotes)
   } catch (error) {
     console.error("Error fetching client quotes:", error)
-    return NextResponse.json({ error: "Failed to fetch client quotes" }, { status: 500 })
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 })
   }
 }
 
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { clientId, validUntil, items, notes } = body
+    const { clientId, validUntil, items, notes, status = QuoteStatus.DRAFT } = body
 
     // Validate required fields
     if (!clientId || !items || items.length === 0) {
@@ -79,7 +82,7 @@ export async function POST(request: Request) {
         `INSERT INTO client_quotes 
          (clientId, totalAmount, dateCreated, validUntil, status, notes) 
          VALUES (?, ?, NOW(), ?, ?, ?)`,
-        [clientId, totalAmount, validUntil, QuoteStatus.PENDING, notes],
+        [clientId, totalAmount, validUntil, status, notes],
       )
 
       const quoteId = (quoteResult as any).insertId
@@ -90,7 +93,13 @@ export async function POST(request: Request) {
           `INSERT INTO client_quote_items 
            (quoteId, productId, quantity, unitPrice, totalPrice) 
            VALUES (?, ?, ?, ?, ?)`,
-          [quoteId, item.productId, item.quantity, item.unitPrice, item.quantity * item.unitPrice],
+          [
+            quoteId, 
+            item.productId, 
+            item.quantity, 
+            item.unitPrice, 
+            item.quantity * item.unitPrice
+          ],
         )
       }
 
@@ -106,7 +115,7 @@ export async function POST(request: Request) {
       [result],
     )
 
-    return NextResponse.json(newQuote[0])
+    return NextResponse.json((newQuote as any[])[0])
   } catch (error) {
     console.error("Error creating client quote:", error)
     return NextResponse.json({ error: "Failed to create client quote" }, { status: 500 })

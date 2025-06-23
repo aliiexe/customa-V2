@@ -75,7 +75,9 @@ export default function QuoteFilters({ type }: QuoteFiltersProps) {
           </SelectTrigger>
           <SelectContent className="bg-white">
             <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value={QuoteStatus.DRAFT}>Draft</SelectItem>
             <SelectItem value={QuoteStatus.PENDING}>Pending</SelectItem>
+            <SelectItem value={QuoteStatus.CONFIRMED}>Confirmed</SelectItem>
             <SelectItem value={QuoteStatus.APPROVED}>Approved</SelectItem>
             <SelectItem value={QuoteStatus.REJECTED}>Rejected</SelectItem>
             <SelectItem value={QuoteStatus.CONVERTED}>Converted</SelectItem>
