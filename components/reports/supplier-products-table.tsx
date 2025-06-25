@@ -24,7 +24,7 @@ export function SupplierProductsTable() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('/api/reports/suppliers/products');
+        const response = await fetch("/api/reports/suppliers/products");
         if (response.ok) {
           const productData = await response.json();
           setData(productData);
@@ -56,8 +56,12 @@ export function SupplierProductsTable() {
         {data.map((supplier) => (
           <TableRow key={supplier.name}>
             <TableCell className="font-medium">{supplier.name}</TableCell>
-            <TableCell className="text-right">{supplier.totalProducts}</TableCell>
-            <TableCell className="text-right">{supplier.percentage.toFixed(1)}%</TableCell>
+            <TableCell className="text-right">
+              {supplier.totalProducts}
+            </TableCell>
+            <TableCell className="text-right">
+              {supplier.percentage.toFixed(1)}%
+            </TableCell>
           </TableRow>
         ))}
       </TableBody>

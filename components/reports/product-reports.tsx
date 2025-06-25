@@ -1,9 +1,21 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, FileSpreadsheet, AlertTriangle, Package, TrendingUp } from "lucide-react";
+import {
+  Download,
+  FileSpreadsheet,
+  AlertTriangle,
+  Package,
+  TrendingUp,
+} from "lucide-react";
 import { TopSellingProducts } from "@/components/dashboard/top-selling-products";
 import { StockLevelsChart } from "@/components/dashboard/stock-levels-chart";
 import { ProductInventoryTable } from "@/components/reports/product-inventory-table";
@@ -17,8 +29,8 @@ interface ProductData {
   totalProducts: number;
   lowStockCount: number;
   outOfStockCount: number;
-  topCategoriesDistribution?: { 
-    name: string; 
+  topCategoriesDistribution?: {
+    name: string;
     count: number;
     percentage: number;
   }[];
@@ -37,7 +49,7 @@ export default function ProductReports() {
     inStock: 0,
     lowStock: 0,
     outOfStock: 0,
-    total: 0
+    total: 0,
   });
   const [activeTab, setActiveTab] = useState("inventory");
 
@@ -46,8 +58,8 @@ export default function ProductReports() {
       setLoading(true);
       try {
         const [productsResponse, inventoryResponse] = await Promise.all([
-          fetch('/api/reports/products'),
-          fetch('/api/reports/products/inventory')
+          fetch("/api/reports/products"),
+          fetch("/api/reports/products/inventory"),
         ]);
 
         if (!productsResponse.ok) {
@@ -59,16 +71,19 @@ export default function ProductReports() {
 
         if (inventoryResponse.ok) {
           const inventoryData = await inventoryResponse.json();
-          
+
           // Calculate stock level summary
-          const summary = inventoryData.reduce((acc: any, item: any) => {
-            if (item.status === 'out-of-stock') acc.outOfStock++;
-            else if (item.status === 'low-stock') acc.lowStock++;
-            else acc.inStock++;
-            acc.total++;
-            return acc;
-          }, { inStock: 0, lowStock: 0, outOfStock: 0, total: 0 });
-          
+          const summary = inventoryData.reduce(
+            (acc: any, item: any) => {
+              if (item.status === "out-of-stock") acc.outOfStock++;
+              else if (item.status === "low-stock") acc.lowStock++;
+              else acc.inStock++;
+              acc.total++;
+              return acc;
+            },
+            { inStock: 0, lowStock: 0, outOfStock: 0, total: 0 }
+          );
+
           setStockLevelSummary(summary);
         }
       } catch (error) {
@@ -84,9 +99,9 @@ export default function ProductReports() {
 
   const handleExportCSV = async () => {
     try {
-      const response = await fetch('/api/reports/products/export');
+      const response = await fetch("/api/reports/products/export");
       if (!response.ok) throw new Error("Failed to export data");
-      
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -121,8 +136,8 @@ export default function ProductReports() {
         </Button>
       </div>
 
-      <Tabs 
-        value={activeTab} 
+      <Tabs
+        value={activeTab}
         onValueChange={setActiveTab}
         className="space-y-4"
       >
@@ -130,7 +145,7 @@ export default function ProductReports() {
           <TabsTrigger value="inventory">Inventory Status</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="inventory" className="space-y-4">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             <Card className="bg-white shadow-sm">
@@ -147,13 +162,15 @@ export default function ProductReports() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Package className="h-4 w-4 text-gray-400" />
-                      <span className="text-sm text-gray-500">Active inventory items</span>
+                      <span className="text-sm text-gray-500">
+                        Active inventory items
+                      </span>
                     </div>
                   </div>
                 )}
               </CardContent>
             </Card>
-            
+
             <Card className="bg-white shadow-sm">
               <CardHeader>
                 <CardTitle>Low Stock Alerts</CardTitle>
@@ -168,18 +185,24 @@ export default function ProductReports() {
                     </div>
                     <div className="flex items-center gap-2">
                       <AlertTriangle className="h-4 w-4 text-amber-400" />
-                      <span className="text-sm text-gray-500">Items need restocking</span>
+                      <span className="text-sm text-gray-500">
+                        Items need restocking
+                      </span>
                     </div>
-                    <Progress 
-                      value={(data?.lowStockCount || 0) / (data?.totalProducts || 1) * 100} 
-                      className="h-1.5 bg-amber-100" 
-                      indicatorClassName="bg-amber-500" 
+                    <Progress
+                      value={
+                        ((data?.lowStockCount || 0) /
+                          (data?.totalProducts || 1)) *
+                        100
+                      }
+                      className="h-1.5 bg-amber-100"
+                      indicatorClassName="bg-amber-500"
                     />
                   </div>
                 )}
               </CardContent>
             </Card>
-            
+
             <Card className="bg-white shadow-sm">
               <CardHeader>
                 <CardTitle>Out of Stock</CardTitle>
@@ -194,12 +217,18 @@ export default function ProductReports() {
                     </div>
                     <div className="flex items-center gap-2">
                       <AlertTriangle className="h-4 w-4 text-red-400" />
-                      <span className="text-sm text-gray-500">Urgent attention needed</span>
+                      <span className="text-sm text-gray-500">
+                        Urgent attention needed
+                      </span>
                     </div>
-                    <Progress 
-                      value={(data?.outOfStockCount || 0) / (data?.totalProducts || 1) * 100} 
-                      className="h-1.5 bg-red-100" 
-                      indicatorClassName="bg-red-500" 
+                    <Progress
+                      value={
+                        ((data?.outOfStockCount || 0) /
+                          (data?.totalProducts || 1)) *
+                        100
+                      }
+                      className="h-1.5 bg-red-100"
+                      indicatorClassName="bg-red-500"
                     />
                   </div>
                 )}
@@ -211,18 +240,44 @@ export default function ProductReports() {
             <CardHeader className="bg-gray-50 border-b flex flex-row justify-between items-start">
               <div>
                 <CardTitle>Stock Level Summary</CardTitle>
-                <CardDescription className="mt-1">Current status of your inventory</CardDescription>
+                <CardDescription className="mt-1">
+                  Current status of your inventory
+                </CardDescription>
               </div>
               {stockLevelSummary.total > 0 && (
                 <div className="flex gap-2 flex-wrap">
-                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                    In Stock: {stockLevelSummary.inStock} ({Math.round(stockLevelSummary.inStock/stockLevelSummary.total*100)}%)
+                  <Badge
+                    variant="outline"
+                    className="bg-green-50 text-green-700 border-green-200"
+                  >
+                    In Stock: {stockLevelSummary.inStock} (
+                    {Math.round(
+                      (stockLevelSummary.inStock / stockLevelSummary.total) *
+                        100
+                    )}
+                    %)
                   </Badge>
-                  <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-                    Low Stock: {stockLevelSummary.lowStock} ({Math.round(stockLevelSummary.lowStock/stockLevelSummary.total*100)}%)
+                  <Badge
+                    variant="outline"
+                    className="bg-amber-50 text-amber-700 border-amber-200"
+                  >
+                    Low Stock: {stockLevelSummary.lowStock} (
+                    {Math.round(
+                      (stockLevelSummary.lowStock / stockLevelSummary.total) *
+                        100
+                    )}
+                    %)
                   </Badge>
-                  <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
-                    Out of Stock: {stockLevelSummary.outOfStock} ({Math.round(stockLevelSummary.outOfStock/stockLevelSummary.total*100)}%)
+                  <Badge
+                    variant="outline"
+                    className="bg-red-50 text-red-700 border-red-200"
+                  >
+                    Out of Stock: {stockLevelSummary.outOfStock} (
+                    {Math.round(
+                      (stockLevelSummary.outOfStock / stockLevelSummary.total) *
+                        100
+                    )}
+                    %)
                   </Badge>
                 </div>
               )}
@@ -235,14 +290,16 @@ export default function ProductReports() {
           <Card className="bg-white shadow-sm">
             <CardHeader className="bg-gray-50 border-b">
               <CardTitle>Top Selling Products</CardTitle>
-              <CardDescription>Best performing products by sales volume</CardDescription>
+              <CardDescription>
+                Best performing products by sales volume
+              </CardDescription>
             </CardHeader>
             <CardContent className="bg-white">
               <TopSellingProducts />
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="performance" className="space-y-4">
           <div className="text-center py-12 text-gray-500">
             <p>Product performance analytics coming soon</p>

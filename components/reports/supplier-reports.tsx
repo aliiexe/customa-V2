@@ -1,9 +1,22 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, FileSpreadsheet, Building2, DollarSign, Package as PackageIcon, AlertTriangle } from "lucide-react";
+import {
+  Download,
+  FileSpreadsheet,
+  Building2,
+  DollarSign,
+  Package as PackageIcon,
+  AlertTriangle,
+} from "lucide-react";
 import { SupplierExpensesChart } from "@/components/reports/supplier-expenses-chart";
 import { SupplierProductsTable } from "@/components/reports/supplier-products-table";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -36,10 +49,12 @@ export default function SupplierReports({ dateRange }: SupplierReportsProps) {
       try {
         const startDate = dateRange.from.toISOString().split("T")[0];
         const endDate = dateRange.to.toISOString().split("T")[0];
-        
+
         const [supplierResponse, paymentResponse] = await Promise.all([
-          fetch(`/api/reports/suppliers?startDate=${startDate}&endDate=${endDate}`),
-          fetch('/api/dashboard/alerts')
+          fetch(
+            `/api/reports/suppliers?startDate=${startDate}&endDate=${endDate}`
+          ),
+          fetch("/api/dashboard/alerts"),
         ]);
 
         if (!supplierResponse.ok) {
@@ -47,18 +62,20 @@ export default function SupplierReports({ dateRange }: SupplierReportsProps) {
         }
 
         const supplierData = await supplierResponse.json();
-        
+
         // Add some calculated values if not provided by API
         setData({
           ...supplierData,
           reliabilityScore: supplierData.reliabilityScore || 87, // Default value if not provided
-          averageDeliveryTime: supplierData.averageDeliveryTime || 5.3 // Default value if not provided
+          averageDeliveryTime: supplierData.averageDeliveryTime || 5.3, // Default value if not provided
         });
 
         // Get pending payment info from alerts
         if (paymentResponse.ok) {
           const alertsData = await paymentResponse.json();
-          const paymentAlert = alertsData.find((alert: any) => alert.id === 'unpaid-suppliers');
+          const paymentAlert = alertsData.find(
+            (alert: any) => alert.id === "unpaid-suppliers"
+          );
           if (paymentAlert) {
             setPendingPayments(paymentAlert.value || 0);
           }
@@ -84,9 +101,13 @@ export default function SupplierReports({ dateRange }: SupplierReportsProps) {
 
   const handleExportCSV = async () => {
     try {
-      const response = await fetch(`/api/reports/suppliers/export?startDate=${dateRange.from.toISOString().split("T")[0]}&endDate=${dateRange.to.toISOString().split("T")[0]}`);
+      const response = await fetch(
+        `/api/reports/suppliers/export?startDate=${
+          dateRange.from.toISOString().split("T")[0]
+        }&endDate=${dateRange.to.toISOString().split("T")[0]}`
+      );
       if (!response.ok) throw new Error("Failed to export data");
-      
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -104,7 +125,9 @@ export default function SupplierReports({ dateRange }: SupplierReportsProps) {
     <div className="space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-4">
         <div>
-          <h2 className="text-2xl font-semibold text-primary">Supplier Reports</h2>
+          <h2 className="text-2xl font-semibold text-primary">
+            Supplier Reports
+          </h2>
           <p className="text-gray-500">
             {format(dateRange.from, "PPP")} - {format(dateRange.to, "PPP")}
           </p>
@@ -140,7 +163,7 @@ export default function SupplierReports({ dateRange }: SupplierReportsProps) {
             )}
           </CardContent>
         </Card>
-        
+
         <Card className="bg-white shadow-sm">
           <CardHeader>
             <CardTitle>Active Purchase Orders</CardTitle>
@@ -161,7 +184,7 @@ export default function SupplierReports({ dateRange }: SupplierReportsProps) {
             )}
           </CardContent>
         </Card>
-        
+
         <Card className="bg-white shadow-sm">
           <CardHeader>
             <CardTitle>Total Expenses YTD</CardTitle>
@@ -182,7 +205,7 @@ export default function SupplierReports({ dateRange }: SupplierReportsProps) {
             )}
           </CardContent>
         </Card>
-        
+
         <Card className="bg-white shadow-sm">
           <CardHeader>
             <CardTitle>Pending Payments</CardTitle>
@@ -197,7 +220,9 @@ export default function SupplierReports({ dateRange }: SupplierReportsProps) {
                 </div>
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 text-amber-400" />
-                  <span className="text-sm text-gray-500">Awaiting payment</span>
+                  <span className="text-sm text-gray-500">
+                    Awaiting payment
+                  </span>
                 </div>
               </div>
             )}
@@ -221,37 +246,54 @@ export default function SupplierReports({ dateRange }: SupplierReportsProps) {
               <div className="space-y-6">
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-sm font-medium">Reliability Score</span>
-                    <span className="text-sm font-medium">{data?.reliabilityScore || 0}/100</span>
+                    <span className="text-sm font-medium">
+                      Reliability Score
+                    </span>
+                    <span className="text-sm font-medium">
+                      {data?.reliabilityScore || 0}/100
+                    </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div 
-                      className="bg-green-600 h-2.5 rounded-full" 
+                    <div
+                      className="bg-green-600 h-2.5 rounded-full"
                       style={{ width: `${data?.reliabilityScore || 0}%` }}
                     ></div>
                   </div>
-                  <p className="text-xs text-gray-500">Based on delivery time and quality</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm font-medium">Avg. Delivery Time</span>
-                    <span className="text-sm font-medium">{data?.averageDeliveryTime} days</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div 
-                      className="bg-blue-600 h-2.5 rounded-full" 
-                      style={{ width: `${Math.min(100, (data?.averageDeliveryTime || 0) / 10 * 100)}%` }}
-                    ></div>
-                  </div>
-                  <p className="text-xs text-gray-500">From order to delivery</p>
+                  <p className="text-xs text-gray-500">
+                    Based on delivery time and quality
+                  </p>
                 </div>
 
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">
+                      Avg. Delivery Time
+                    </span>
+                    <span className="text-sm font-medium">
+                      {data?.averageDeliveryTime} days
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div
+                      className="bg-blue-600 h-2.5 rounded-full"
+                      style={{
+                        width: `${Math.min(
+                          100,
+                          ((data?.averageDeliveryTime || 0) / 10) * 100
+                        )}%`,
+                      }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    From order to delivery
+                  </p>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
                   className="w-full"
-                  onClick={() => window.location.href = "/suppliers"}
+                  onClick={() => (window.location.href = "/suppliers")}
                 >
                   View All Suppliers
                 </Button>
@@ -274,7 +316,9 @@ export default function SupplierReports({ dateRange }: SupplierReportsProps) {
       <Card className="bg-white shadow-sm">
         <CardHeader className="bg-gray-50 border-b">
           <CardTitle>Supplier Products Distribution</CardTitle>
-          <CardDescription>Product distribution among suppliers</CardDescription>
+          <CardDescription>
+            Product distribution among suppliers
+          </CardDescription>
         </CardHeader>
         <CardContent className="bg-white pt-6">
           <SupplierProductsTable />

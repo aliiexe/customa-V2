@@ -9,9 +9,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, FileSpreadsheet, Users, CreditCard, TrendingUp } from "lucide-react";
+import {
+  Download,
+  FileSpreadsheet,
+  Users,
+  CreditCard,
+  TrendingUp,
+} from "lucide-react";
 import { ClientsSpendingChart } from "@/components/reports/clients-spending-chart";
 import { TopClientsTable } from "@/components/reports/top-clients-table";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -89,9 +101,9 @@ function ClientContributionsTable() {
             <TableCell className="text-right">
               <div className="flex items-center justify-end gap-2">
                 <div className="w-16 h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-primary" 
-                    style={{ width: `${Math.min(100, client.percentage)}%` }} 
+                  <div
+                    className="h-full bg-primary"
+                    style={{ width: `${Math.min(100, client.percentage)}%` }}
                   />
                 </div>
                 <span>{client.percentage.toFixed(1)}%</span>
@@ -115,8 +127,10 @@ export default function ClientReports({ dateRange }: ClientReportsProps) {
       try {
         const startDate = dateRange.from.toISOString().split("T")[0];
         const endDate = dateRange.to.toISOString().split("T")[0];
-        
-        const response = await fetch(`/api/reports/clients?startDate=${startDate}&endDate=${endDate}`);
+
+        const response = await fetch(
+          `/api/reports/clients?startDate=${startDate}&endDate=${endDate}`
+        );
 
         if (!response.ok) {
           throw new Error("Failed to fetch client data");
@@ -146,18 +160,24 @@ export default function ClientReports({ dateRange }: ClientReportsProps) {
   const handleExportCSV = async () => {
     try {
       const csvData = [
-        ['Metric', 'Value'],
-        ['Total Clients', data?.totalClients || 0],
-        ['Active Clients', data?.activeClients || 0],
-        ['Total Revenue', data?.totalRevenue || 0],
-        ['New Clients This Month', data?.newClientsThisMonth || 0],
-        ['Average Lifetime Value', data?.avgLifetimeValue || 0],
-        ['Retention Rate %', data?.retentionRate || 0],
-        ['Period', `${format(dateRange.from, "yyyy-MM-dd")} to ${format(dateRange.to, "yyyy-MM-dd")}`]
+        ["Metric", "Value"],
+        ["Total Clients", data?.totalClients || 0],
+        ["Active Clients", data?.activeClients || 0],
+        ["Total Revenue", data?.totalRevenue || 0],
+        ["New Clients This Month", data?.newClientsThisMonth || 0],
+        ["Average Lifetime Value", data?.avgLifetimeValue || 0],
+        ["Retention Rate %", data?.retentionRate || 0],
+        [
+          "Period",
+          `${format(dateRange.from, "yyyy-MM-dd")} to ${format(
+            dateRange.to,
+            "yyyy-MM-dd"
+          )}`,
+        ],
       ];
-      
-      const csvContent = csvData.map(row => row.join(',')).join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv' });
+
+      const csvContent = csvData.map((row) => row.join(",")).join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv" });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -210,13 +230,15 @@ export default function ClientReports({ dateRange }: ClientReportsProps) {
                 </div>
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-gray-400" />
-                  <span className="text-sm text-gray-500">All registered clients</span>
+                  <span className="text-sm text-gray-500">
+                    All registered clients
+                  </span>
                 </div>
               </div>
             )}
           </CardContent>
         </Card>
-        
+
         <Card className="bg-white shadow-sm">
           <CardHeader>
             <CardTitle>Active Clients</CardTitle>
@@ -229,18 +251,20 @@ export default function ClientReports({ dateRange }: ClientReportsProps) {
                 <div className="text-3xl font-bold text-primary">
                   {data?.activeClients || 0}
                   <span className="text-sm ml-2 text-gray-500">
-                    ({Math.round((data?.retentionRate || 0))}%)
+                    ({Math.round(data?.retentionRate || 0)}%)
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-gray-400" />
-                  <span className="text-sm text-gray-500">Ordered in last 3 months</span>
+                  <span className="text-sm text-gray-500">
+                    Ordered in last 3 months
+                  </span>
                 </div>
               </div>
             )}
           </CardContent>
         </Card>
-        
+
         <Card className="bg-white shadow-sm">
           <CardHeader>
             <CardTitle>New Clients</CardTitle>
@@ -255,13 +279,15 @@ export default function ClientReports({ dateRange }: ClientReportsProps) {
                 </div>
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-gray-400" />
-                  <span className="text-sm text-gray-500">Added this month</span>
+                  <span className="text-sm text-gray-500">
+                    Added this month
+                  </span>
                 </div>
               </div>
             )}
           </CardContent>
         </Card>
-        
+
         <Card className="bg-white shadow-sm">
           <CardHeader>
             <CardTitle>Avg. Lifetime Value</CardTitle>
@@ -276,7 +302,9 @@ export default function ClientReports({ dateRange }: ClientReportsProps) {
                 </div>
                 <div className="flex items-center gap-2">
                   <CreditCard className="h-4 w-4 text-gray-400" />
-                  <span className="text-sm text-gray-500">Revenue per client</span>
+                  <span className="text-sm text-gray-500">
+                    Revenue per client
+                  </span>
                 </div>
               </div>
             )}
@@ -300,10 +328,10 @@ export default function ClientReports({ dateRange }: ClientReportsProps) {
             <CardTitle>Top Clients by Revenue</CardTitle>
             <CardDescription>Your most valuable clients</CardDescription>
           </div>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
-            onClick={() => window.location.href = "/clients"}
+            onClick={() => (window.location.href = "/clients")}
           >
             View All Clients
           </Button>

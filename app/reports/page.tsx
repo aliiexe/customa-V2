@@ -56,7 +56,10 @@ export default function ReportsPage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${activeTab}-report-${format(new Date(), "yyyy-MM-dd")}.json`;
+      a.download = `${activeTab}-report-${format(
+        new Date(),
+        "yyyy-MM-dd"
+      )}.json`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);

@@ -181,17 +181,13 @@ export function ProductInventoryTable() {
             placeholder="Search products by name, reference, or supplier..."
             className="pl-9"
             value={filters.search}
-            onChange={(e) =>
-              setFilters({ ...filters, search: e.target.value })
-            }
+            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
           />
         </div>
         <div className="flex gap-2">
           <Select
             value={filters.status}
-            onValueChange={(value) =>
-              setFilters({ ...filters, status: value })
-            }
+            onValueChange={(value) => setFilters({ ...filters, status: value })}
           >
             <SelectTrigger className="w-36">
               <SelectValue placeholder="Filter by status" />
