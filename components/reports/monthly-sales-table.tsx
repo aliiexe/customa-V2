@@ -9,13 +9,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TrendingUp, TrendingDown } from "lucide-react";
 
 interface MonthlySalesData {
   month: string;
   revenue: number;
   orders: number;
-  averageOrderValue: number;
   growth: number;
 }
 
@@ -57,7 +58,6 @@ export function MonthlySalesTable({ year }: MonthlySalesTableProps) {
         <Skeleton className="h-8 w-full mb-4" />
         <Skeleton className="h-8 w-full mb-4" />
         <Skeleton className="h-8 w-full mb-4" />
-        <Skeleton className="h-8 w-full mb-4" />
       </div>
     );
   }
@@ -66,6 +66,14 @@ export function MonthlySalesTable({ year }: MonthlySalesTableProps) {
     return <div className="text-red-500">{error}</div>;
   }
 
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+    }).format(value);
+  };
+
   return (
     <Table>
       <TableHeader>
@@ -73,27 +81,33 @@ export function MonthlySalesTable({ year }: MonthlySalesTableProps) {
           <TableHead>Month</TableHead>
           <TableHead className="text-right">Revenue</TableHead>
           <TableHead className="text-right">Orders</TableHead>
-          <TableHead className="text-right">Avg. Order Value</TableHead>
           <TableHead className="text-right">Growth</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {data.map((row) => (
-          <TableRow key={row.month}>
-            <TableCell>{row.month}</TableCell>
+        {data.map((item) => (
+          <TableRow key={item.month}>
+            <TableCell className="font-medium">{item.month}</TableCell>
             <TableCell className="text-right">
-              ${row.revenue.toFixed(2)}
+              {formatCurrency(item.revenue)}
             </TableCell>
-            <TableCell className="text-right">{row.orders}</TableCell>
+            <TableCell className="text-right">{item.orders}</TableCell>
             <TableCell className="text-right">
-              ${row.averageOrderValue.toFixed(2)}
-            </TableCell>
-            <TableCell className="text-right">
-              <span
-                className={row.growth >= 0 ? "text-primary" : "text-red-600"}
-              >
-                {row.growth.toFixed(2)}%
-              </span>
+              <div className="flex items-center justify-end">
+                {item.growth > 0 ? (
+                  <>
+                    <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                    <span className="text-green-600">+{item.growth}%</span>
+                  </>
+                ) : item.growth < 0 ? (
+                  <>
+                    <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
+                    <span className="text-red-600">{item.growth}%</span>
+                  </>
+                ) : (
+                  <span>0%</span>
+                )}
+              </div>
             </TableCell>
           </TableRow>
         ))}

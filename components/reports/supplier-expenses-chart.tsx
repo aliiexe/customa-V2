@@ -1,51 +1,29 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-interface SupplierExpense {
+interface ExpenseData {
   name: string;
   expenses: number;
   products: number;
 }
 
 export function SupplierExpensesChart() {
-  const [data, setData] = useState<SupplierExpense[]>([]);
+  const [data, setData] = useState<ExpenseData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
       try {
-        const response = await fetch(`/api/reports/suppliers/expenses?limit=5`);
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch supplier expenses data");
+        const response = await fetch('/api/reports/suppliers/expenses?limit=5');
+        if (response.ok) {
+          const expenseData = await response.json();
+          setData(expenseData);
         }
-
-        // Format the data
-        const expensesData = await response.json();
-        const formattedData = expensesData.map((item: any) => ({
-          name: item.name,
-          expenses: Number(item.expenses),
-          products: Number(item.products)
-        }));
-        
-        setData(formattedData);
       } catch (error) {
-        console.error("Error fetching supplier expenses data:", error);
-        setError("Unable to load supplier expenses data.");
+        console.error("Error fetching supplier expenses:", error);
       } finally {
         setLoading(false);
       }
@@ -55,32 +33,28 @@ export function SupplierExpensesChart() {
   }, []);
 
   if (loading) {
-    return <Skeleton className="h-[300px] w-full" />;
-  }
-
-  if (error) {
-    return <div className="text-red-500">{error}</div>;
+    return <Skeleton className="h-64 w-full" />;
   }
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" tick={{ fontSize: 12 }} angle={-45} textAnchor="end" height={80} />
-        <YAxis yAxisId="left" orientation="left" />
-        <YAxis yAxisId="right" orientation="right" />
-        <Tooltip 
-          formatter={(value, name) => {
-            if (name === "expenses") return [`$${Number(value).toFixed(2)}`, "Expenses"];
-            return [value, name];
-          }}
-          labelStyle={{ color: '#111' }}
-          contentStyle={{ background: "white", border: "1px solid #ddd" }}
-        />
-        <Legend />
-        <Bar yAxisId="left" dataKey="expenses" name="Expenses ($)" fill="#4f46e5" />
-        <Bar yAxisId="right" dataKey="products" name="Products" fill="#10b981" />
-      </BarChart>
-    </ResponsiveContainer>
+    <div className="space-y-4">
+      {data.map((supplier, index) => (
+        <div key={supplier.name} className="flex items-center justify-between p-4 border rounded-lg">
+          <div>
+            <h4 className="font-semibold">{supplier.name}</h4>
+            <p className="text-sm text-gray-500">{supplier.products} products</p>
+          </div>
+          <div className="text-right">
+            <p className="font-bold text-lg">${supplier.expenses.toLocaleString()}</p>
+            <div className="w-32 bg-gray-200 rounded-full h-2 mt-1">
+              <div 
+                className="bg-primary h-2 rounded-full" 
+                style={{ width: `${Math.min((supplier.expenses / Math.max(...data.map(d => d.expenses))) * 100, 100)}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }

@@ -9,40 +9,28 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface SupplierProduct {
-  id: number;
-  supplier: string;
-  categories: string[];
-  productCount: number;
-  percentageOfTotal: number;
-  avgPrice: number;
-  topCategory: string;
+  name: string;
+  totalProducts: number;
+  percentage: number;
 }
 
 export function SupplierProductsTable() {
   const [data, setData] = useState<SupplierProduct[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
       try {
-        const response = await fetch(`/api/reports/suppliers/products`);
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch supplier products data");
+        const response = await fetch('/api/reports/suppliers/products');
+        if (response.ok) {
+          const productData = await response.json();
+          setData(productData);
         }
-
-        const supplierData = await response.json();
-        setData(supplierData);
       } catch (error) {
-        console.error("Error fetching supplier products data:", error);
-        setError("Unable to load supplier products data.");
+        console.error("Error fetching supplier products:", error);
       } finally {
         setLoading(false);
       }
@@ -52,18 +40,7 @@ export function SupplierProductsTable() {
   }, []);
 
   if (loading) {
-    return (
-      <div>
-        <Skeleton className="h-8 w-full mb-4" />
-        <Skeleton className="h-8 w-full mb-4" />
-        <Skeleton className="h-8 w-full mb-4" />
-        <Skeleton className="h-8 w-full mb-4" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return <div className="text-red-500">{error}</div>;
+    return <Skeleton className="h-64 w-full" />;
   }
 
   return (
@@ -72,40 +49,15 @@ export function SupplierProductsTable() {
         <TableRow>
           <TableHead>Supplier</TableHead>
           <TableHead className="text-right">Products</TableHead>
-          <TableHead>Categories</TableHead>
-          <TableHead>Distribution</TableHead>
-          <TableHead className="text-right">Avg. Price</TableHead>
+          <TableHead className="text-right">Market Share</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {data.map((item) => (
-          <TableRow key={item.id}>
-            <TableCell className="font-medium">{item.supplier}</TableCell>
-            <TableCell className="text-right">{item.productCount}</TableCell>
-            <TableCell>
-              <div className="flex flex-wrap gap-1">
-                {item.categories.map((category) => (
-                  <Badge
-                    key={category}
-                    variant="outline"
-                    className="bg-primary/10 text-primary border-primary/20"
-                  >
-                    {category}
-                  </Badge>
-                ))}
-              </div>
-            </TableCell>
-            <TableCell className="w-[200px]">
-              <div className="space-y-1">
-                <Progress value={item.percentageOfTotal} className="h-2" />
-                <div className="text-xs text-gray-500">
-                  {item.percentageOfTotal}% of catalog
-                </div>
-              </div>
-            </TableCell>
-            <TableCell className="text-right">
-              ${item.avgPrice.toFixed(2)}
-            </TableCell>
+        {data.map((supplier) => (
+          <TableRow key={supplier.name}>
+            <TableCell className="font-medium">{supplier.name}</TableCell>
+            <TableCell className="text-right">{supplier.totalProducts}</TableCell>
+            <TableCell className="text-right">{supplier.percentage.toFixed(1)}%</TableCell>
           </TableRow>
         ))}
       </TableBody>

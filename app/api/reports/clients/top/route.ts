@@ -3,9 +3,10 @@ import { query } from "@/lib/db";
 
 export async function GET(request: Request) {
   try {
-    const url = new URL(request.url);
-    const limit = parseInt(url.searchParams.get('limit') || '5');
-    
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get('limit') || '10');
+
+    // Use payment_status instead of status
     const topClientsQuery = `
       SELECT 
         c.id,
@@ -18,16 +19,28 @@ export async function GET(request: Request) {
           ELSE 'inactive' 
         END as status
       FROM clients c
-      LEFT JOIN client_invoices i ON c.id = i.clientId AND i.status = 'PAID'
+      LEFT JOIN client_invoices i ON c.id = i.clientId AND i.payment_status = 'PAID'
       GROUP BY c.id, c.name
       ORDER BY totalSpent DESC
       LIMIT ?
     `;
+
+    const result = await query(topClientsQuery, [limit]);
     
-    const topClientsResult = await query(topClientsQuery, [limit]);
-    
-    return NextResponse.json(Array.isArray(topClientsResult) ? topClientsResult : []);
-    
+    if (!Array.isArray(result)) {
+      return NextResponse.json([]);
+    }
+
+    const formattedData = result.map((client: any) => ({
+      id: client.id,
+      name: client.name,
+      totalSpent: Number(client.totalSpent),
+      orderCount: Number(client.orderCount),
+      lastPurchase: client.lastPurchase,
+      status: client.status
+    }));
+
+    return NextResponse.json(formattedData);
   } catch (error) {
     console.error("Error fetching top clients data:", error);
     return NextResponse.json({ error: "Failed to fetch top clients data" }, { status: 500 });

@@ -9,17 +9,25 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, FileSpreadsheet, Users, CreditCard, TrendingUp } from "lucide-react";
 import { ClientsSpendingChart } from "@/components/reports/clients-spending-chart";
 import { TopClientsTable } from "@/components/reports/top-clients-table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
 
 interface ClientData {
   totalClients: number;
   activeClients: number;
+  totalRevenue: number;
+  newClientsThisMonth: number;
   avgLifetimeValue: number;
+  retentionRate: number;
+}
+
+interface ClientReportsProps {
+  dateRange: { from: Date; to: Date };
 }
 
 function ClientContributionsTable() {
@@ -38,6 +46,7 @@ function ClientContributionsTable() {
           throw new Error("Failed to fetch client contributions");
         setData(await response.json());
       } catch (err) {
+        console.error("Error:", err);
         setError("Unable to load client contributions.");
       } finally {
         setLoading(false);
@@ -51,8 +60,10 @@ function ClientContributionsTable() {
       <div>
         <Skeleton className="h-8 w-full mb-4" />
         <Skeleton className="h-8 w-full mb-4" />
+        <Skeleton className="h-8 w-full mb-4" />
       </div>
     );
+
   if (error) return <div className="text-red-500">{error}</div>;
 
   return (
@@ -61,7 +72,7 @@ function ClientContributionsTable() {
         <TableRow>
           <TableHead>Client</TableHead>
           <TableHead className="text-right">Revenue</TableHead>
-          <TableHead className="text-right">% of CA</TableHead>
+          <TableHead className="text-right">% of Total</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -75,7 +86,17 @@ function ClientContributionsTable() {
                 minimumFractionDigits: 2,
               })}
             </TableCell>
-            <TableCell className="text-right">{client.percentage}%</TableCell>
+            <TableCell className="text-right">
+              <div className="flex items-center justify-end gap-2">
+                <div className="w-16 h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-primary" 
+                    style={{ width: `${Math.min(100, client.percentage)}%` }} 
+                  />
+                </div>
+                <span>{client.percentage.toFixed(1)}%</span>
+              </div>
+            </TableCell>
           </TableRow>
         ))}
       </TableBody>
@@ -83,7 +104,7 @@ function ClientContributionsTable() {
   );
 }
 
-export default function ClientReports() {
+export default function ClientReports({ dateRange }: ClientReportsProps) {
   const [data, setData] = useState<ClientData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -92,7 +113,10 @@ export default function ClientReports() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`/api/reports/clients`);
+        const startDate = dateRange.from.toISOString().split("T")[0];
+        const endDate = dateRange.to.toISOString().split("T")[0];
+        
+        const response = await fetch(`/api/reports/clients?startDate=${startDate}&endDate=${endDate}`);
 
         if (!response.ok) {
           throw new Error("Failed to fetch client data");
@@ -109,7 +133,7 @@ export default function ClientReports() {
     };
 
     fetchData();
-  }, []);
+  }, [dateRange]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -119,20 +143,59 @@ export default function ClientReports() {
     }).format(value);
   };
 
+  const handleExportCSV = async () => {
+    try {
+      const csvData = [
+        ['Metric', 'Value'],
+        ['Total Clients', data?.totalClients || 0],
+        ['Active Clients', data?.activeClients || 0],
+        ['Total Revenue', data?.totalRevenue || 0],
+        ['New Clients This Month', data?.newClientsThisMonth || 0],
+        ['Average Lifetime Value', data?.avgLifetimeValue || 0],
+        ['Retention Rate %', data?.retentionRate || 0],
+        ['Period', `${format(dateRange.from, "yyyy-MM-dd")} to ${format(dateRange.to, "yyyy-MM-dd")}`]
+      ];
+      
+      const csvContent = csvData.map(row => row.join(',')).join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `client-report-${format(new Date(), "yyyy-MM-dd")}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error exporting CSV:", error);
+    }
+  };
+
+  if (error) {
+    return <div className="text-red-500 p-4 text-center">{error}</div>;
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold text-primary">Client Reports</h2>
+      <div className="flex justify-between items-center flex-wrap gap-4">
+        <div>
+          <h2 className="text-2xl font-semibold text-primary">
+            Client Analytics
+          </h2>
+          <p className="text-gray-500">
+            {format(dateRange.from, "PPP")} - {format(dateRange.to, "PPP")}
+          </p>
+        </div>
         <Button
           variant="outline"
           className="border-primary hover:bg-primary/10"
+          onClick={handleExportCSV}
         >
-          <Download className="mr-2 h-4 w-4" />
-          Export
+          <FileSpreadsheet className="mr-2 h-4 w-4" />
+          Export Client Data
         </Button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card className="bg-white shadow-sm">
           <CardHeader>
             <CardTitle>Total Clients</CardTitle>
@@ -141,12 +204,19 @@ export default function ClientReports() {
             {loading ? (
               <Skeleton className="h-8 w-20" />
             ) : (
-              <div className="text-3xl font-bold text-primary">
-                {data?.totalClients || 0}
+              <div className="space-y-2">
+                <div className="text-3xl font-bold text-primary">
+                  {data?.totalClients || 0}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm text-gray-500">All registered clients</span>
+                </div>
               </div>
             )}
           </CardContent>
         </Card>
+        
         <Card className="bg-white shadow-sm">
           <CardHeader>
             <CardTitle>Active Clients</CardTitle>
@@ -155,17 +225,43 @@ export default function ClientReports() {
             {loading ? (
               <Skeleton className="h-8 w-20" />
             ) : (
-              <>
+              <div className="space-y-2">
                 <div className="text-3xl font-bold text-primary">
                   {data?.activeClients || 0}
+                  <span className="text-sm ml-2 text-gray-500">
+                    ({Math.round((data?.retentionRate || 0))}%)
+                  </span>
                 </div>
-                <p className="text-gray-500 text-sm">
-                  Ordered in last 3 months
-                </p>
-              </>
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm text-gray-500">Ordered in last 3 months</span>
+                </div>
+              </div>
             )}
           </CardContent>
         </Card>
+        
+        <Card className="bg-white shadow-sm">
+          <CardHeader>
+            <CardTitle>New Clients</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : (
+              <div className="space-y-2">
+                <div className="text-3xl font-bold text-green-600">
+                  {data?.newClientsThisMonth || 0}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm text-gray-500">Added this month</span>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        
         <Card className="bg-white shadow-sm">
           <CardHeader>
             <CardTitle>Avg. Lifetime Value</CardTitle>
@@ -174,8 +270,14 @@ export default function ClientReports() {
             {loading ? (
               <Skeleton className="h-8 w-20" />
             ) : (
-              <div className="text-3xl font-bold text-primary">
-                {formatCurrency(data?.avgLifetimeValue || 0)}
+              <div className="space-y-2">
+                <div className="text-3xl font-bold text-primary">
+                  {formatCurrency(data?.avgLifetimeValue || 0)}
+                </div>
+                <div className="flex items-center gap-2">
+                  <CreditCard className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm text-gray-500">Revenue per client</span>
+                </div>
               </div>
             )}
           </CardContent>
@@ -185,17 +287,28 @@ export default function ClientReports() {
       <Card className="bg-white shadow-sm">
         <CardHeader className="bg-gray-50 border-b">
           <CardTitle>Client Spending Trends</CardTitle>
+          <CardDescription>Monthly spending patterns</CardDescription>
         </CardHeader>
-        <CardContent className="bg-white">
+        <CardContent className="bg-white pt-6">
           <ClientsSpendingChart />
         </CardContent>
       </Card>
 
       <Card className="bg-white shadow-sm">
-        <CardHeader className="bg-gray-50 border-b">
-          <CardTitle>Top Clients by Revenue</CardTitle>
+        <CardHeader className="bg-gray-50 border-b flex flex-row justify-between items-center">
+          <div>
+            <CardTitle>Top Clients by Revenue</CardTitle>
+            <CardDescription>Your most valuable clients</CardDescription>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => window.location.href = "/clients"}
+          >
+            View All Clients
+          </Button>
         </CardHeader>
-        <CardContent className="bg-white">
+        <CardContent className="bg-white pt-6">
           <TopClientsTable />
         </CardContent>
       </Card>
@@ -203,8 +316,9 @@ export default function ClientReports() {
       <Card className="bg-white shadow-sm">
         <CardHeader className="bg-gray-50 border-b">
           <CardTitle>Client Contribution to Revenue</CardTitle>
+          <CardDescription>Revenue distribution among clients</CardDescription>
         </CardHeader>
-        <CardContent className="bg-white">
+        <CardContent className="bg-white pt-6">
           <ClientContributionsTable />
         </CardContent>
       </Card>
