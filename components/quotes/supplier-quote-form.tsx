@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -19,9 +19,9 @@ const formSchema = z.object({
   notes: z.string().optional(),
   items: z.array(z.object({
     productId: z.string().min(1, "Please select a product"),
-    quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
-    unitPrice: z.coerce.number().min(0, "Unit price cannot be negative"),
-  })).min(1, "At least one item is required"),
+    quantity: z.number().min(1, "Quantity must be at least 1"),
+    unitPrice: z.number().min(0, "Unit price must be 0 or greater"),
+  })).min(1, "Please add at least one item"),
 })
 
 type FormValues = z.infer<typeof formSchema>
@@ -124,6 +124,9 @@ export default function SupplierQuoteForm() {
 
   return (
     <Card>
+      <CardHeader>
+        <CardTitle className="text-primary">Quote Request Details</CardTitle>
+      </CardHeader>
       <CardContent className="pt-6">
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-md mb-6">
@@ -176,8 +179,13 @@ export default function SupplierQuoteForm() {
 
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">Items</h3>
-                <Button type="button" variant="outline" onClick={addItem}>
+                <h3 className="text-lg font-semibold text-primary">Items</h3>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={addItem}
+                  className="border-primary text-primary hover:bg-primary/10"
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Item
                 </Button>
@@ -278,7 +286,11 @@ export default function SupplierQuoteForm() {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button 
+                type="submit" 
+                disabled={isLoading}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
                 {isLoading ? "Creating..." : "Create Quote"}
               </Button>
             </div>
@@ -287,4 +299,4 @@ export default function SupplierQuoteForm() {
       </CardContent>
     </Card>
   )
-} 
+}

@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertCircle, DollarSign, Package, ShoppingCart } from "lucide-react"
 import { RevenueChart } from "@/components/dashboard/revenue-chart"
@@ -16,6 +17,7 @@ interface DashboardStats {
 }
 
 export default function Dashboard() {
+  const router = useRouter()
   const [stats, setStats] = useState<DashboardStats>({
     totalProducts: 0,
     lowStockAlerts: 0,
@@ -41,6 +43,11 @@ export default function Dashboard() {
 
     fetchDashboardStats()
   }, [])
+
+  useEffect(() => {
+    // Redirect to dashboard immediately
+    router.replace("/dashboard")
+  }, [router])
 
   if (loading) {
     return (

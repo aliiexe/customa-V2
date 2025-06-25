@@ -3,11 +3,15 @@ import { query } from "@/lib/db"
 
 export async function GET(request: Request) {
   try {
+    console.log("GET /api/quotes/supplier called")
     const { searchParams } = new URL(request.url)
-    const supplierId = searchParams.get("supplierId")
     const status = searchParams.get("status")
+    const supplierId = searchParams.get("supplierId")
+    const search = searchParams.get("search")
     const startDate = searchParams.get("startDate")
     const endDate = searchParams.get("endDate")
+
+    console.log("Search params:", { status, supplierId, search, startDate, endDate })
 
     let sql = `
       SELECT 
@@ -25,14 +29,19 @@ export async function GET(request: Request) {
 
     const params: any[] = []
 
-    if (supplierId) {
+    if (status && status !== "all") {
+      sql += " AND q.status = ?"
+      params.push(status)
+    }
+
+    if (supplierId && supplierId !== "all") {
       sql += " AND q.supplierId = ?"
       params.push(supplierId)
     }
 
-    if (status) {
-      sql += " AND q.status = ?"
-      params.push(status)
+    if (search) {
+      sql += " AND (s.name LIKE ? OR q.id LIKE ?)"
+      params.push(`%${search}%`, `%${search}%`)
     }
 
     if (startDate) {
@@ -45,10 +54,14 @@ export async function GET(request: Request) {
       params.push(endDate)
     }
 
-    sql += " GROUP BY q.id, s.name"
+    sql += " GROUP BY q.id, s.name, q.supplierId, q.totalAmount, q.dateCreated, q.validUntil, q.status, q.notes, q.convertedInvoiceId, q.createdAt, q.updatedAt"
     sql += " ORDER BY q.dateCreated DESC"
 
+    console.log("SQL query:", sql)
+    console.log("SQL params:", params)
+
     const quotes = await query(sql, params)
+    console.log("Quotes fetched:", quotes)
 
     return NextResponse.json(quotes)
   } catch (error) {
@@ -126,4 +139,4 @@ export async function POST(request: Request) {
     console.error("Error creating supplier quote:", error)
     return NextResponse.json({ error: "Failed to create supplier quote" }, { status: 500 })
   }
-} 
+}

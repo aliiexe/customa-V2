@@ -15,9 +15,14 @@ export async function GET(request: Request) {
     console.log("Search params:", { status, clientId, search, dateFrom, dateTo })
 
     let sql = `
-      SELECT cq.*, c.name as clientName, cq.convertedInvoiceId
+      SELECT 
+        cq.*, 
+        c.name as clientName, 
+        cq.convertedInvoiceId,
+        COUNT(cqi.id) as itemsCount
       FROM client_quotes cq 
       LEFT JOIN clients c ON cq.clientId = c.id 
+      LEFT JOIN client_quote_items cqi ON cq.id = cqi.quoteId
       WHERE 1=1
     `
 
@@ -48,6 +53,7 @@ export async function GET(request: Request) {
       params.push(dateTo)
     }
 
+    sql += " GROUP BY cq.id, c.name, cq.clientId, cq.totalAmount, cq.dateCreated, cq.validUntil, cq.status, cq.notes, cq.convertedInvoiceId, cq.createdAt, cq.updatedAt"
     sql += " ORDER BY cq.dateCreated DESC"
 
     console.log("SQL query:", sql)

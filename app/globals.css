@@ -5,55 +5,65 @@
 @layer base {
   :root {
     --background: 0 0% 100%; /* White background */
-    --foreground: 142 76% 36%; /* text-primary text */
+    --foreground: 222.2 84% 4.9%; /* Dark text */
     --card: 0 0% 100%; /* White cards */
-    --card-foreground: 142 76% 36%; /* text-primary text on cards */
+    --card-foreground: 222.2 84% 4.9%; /* Dark text on cards */
     --popover: 0 0% 100%; /* White popover */
-    --popover-foreground: 142 76% 36%; /* text-primary text on popover */
+    --popover-foreground: 222.2 84% 4.9%; /* Dark text on popover */
     --secondary: 210 40% 96%; /* Light gray secondary */
-    --secondary-foreground: 142 76% 36%; /* text-primary text on gray */
+    --secondary-foreground: 222.2 84% 4.9%; /* Dark text on gray */
     --muted: 210 40% 96%; /* Light gray muted */
-    --muted-foreground: 142 76% 36%; /* text-primary muted text */
+    --muted-foreground: 107 114 128; /* Gray muted text */
     --accent: 210 40% 96%; /* Light gray accent */
-    --accent-foreground: 142 76% 36%; /* text-primary accent text */
+    --accent-foreground: 222.2 84% 4.9%; /* Dark accent text */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     --border: 210 40% 90%; /* Light gray border */
     --input: 210 40% 96%; /* Light gray input */
-    --ring: 142 76% 36%; /* text-primary focus ring */
+    --ring: 142 77% 36%; /* Primary focus ring */
     --radius: 0.5rem;
 
-    /* Default theme (darker green) */
-    --primary: 142 76% 32%;
-    --primary-hsl: 142, 76%, 32%;
-    --primary-rgb: 19, 143, 65;
-    --primary-color: #138F41;
+    /* Default green theme using your custom color #16A249 */
+    --primary: 142 77% 36%;
+    --primary-foreground: 0 0% 100%; /* White text on primary */
+    --primary-hsl: 142, 77%, 36%;
+    --primary-rgb: 22, 162, 73;
+    --primary-color: #16A249;
   }
 
   .dark {
-    --background: 142 76% 5%; /* Dark text-primary background */
-    --foreground: 0 0% 100%; /* White text */
-    --card: 142 76% 8%; /* Dark text-primary cards */
-    --card-foreground: 0 0% 100%; /* White text on cards */
-    --popover: 142 76% 8%; /* Dark text-primary popover */
-    --popover-foreground: 0 0% 100%; /* White text on popover */
-    --primary: 142 76% 30%; /* Darker green for dark mode */
-    --primary-foreground: 142 76% 5%; /* Dark text-primary text on light text-primary */
-    --secondary: 142 76% 15%; /* Dark text-primary secondary */
-    --secondary-foreground: 0 0% 100%; /* White text on dark text-primary */
-    --muted: 142 76% 15%; /* Dark text-primary muted */
-    --muted-foreground: 0 0% 80%; /* Light gray muted text */
-    --accent: 142 76% 15%; /* Dark text-primary accent */
-    --accent-foreground: 0 0% 100%; /* White accent text */
+    --background: 222.2 84% 4.9%; /* Dark background */
+    --foreground: 210 40% 98%; /* Light text */
+    --card: 222.2 84% 4.9%; /* Dark cards */
+    --card-foreground: 210 40% 98%; /* Light text on cards */
+    --popover: 222.2 84% 4.9%; /* Dark popover */
+    --popover-foreground: 210 40% 98%; /* Light text on popover */
+    --primary: 142 77% 36%; /* Same green for dark mode */
+    --primary-foreground: 0 0% 100%; /* White text on primary */
+    --secondary: 217.2 32.6% 17.5%; /* Dark secondary */
+    --secondary-foreground: 210 40% 98%; /* Light text on dark secondary */
+    --muted: 217.2 32.6% 17.5%; /* Dark muted */
+    --muted-foreground: 215 20.2% 65.1%; /* Light gray muted text */
+    --accent: 217.2 32.6% 17.5%; /* Dark accent */
+    --accent-foreground: 210 40% 98%; /* Light accent text */
     --destructive: 0 62% 30%;
     --destructive-foreground: 0 0% 100%;
-    --border: 142 76% 20%; /* Dark text-primary border */
-    --input: 142 76% 15%; /* Dark text-primary input */
-    --ring: 142 76% 50%; /* Light text-primary focus ring */
+    --border: 217.2 32.6% 17.5%; /* Dark border */
+    --input: 217.2 32.6% 17.5%; /* Dark input */
+    --ring: 142 77% 36%; /* Primary focus ring */
+  }
+
+  [data-theme="green"] {
+    --primary: 142 77% 36%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hsl: 142, 77%, 36%;
+    --primary-rgb: 22, 162, 73;
+    --primary-color: #16A249;
   }
 
   [data-theme="red"] {
     --primary: 359 99% 65%;
+    --primary-foreground: 0 0% 100%;
     --primary-hsl: 359, 99%, 65%;
     --primary-rgb: 254, 77, 80;
     --primary-color: #FE4D50;
@@ -61,6 +71,7 @@
 
   [data-theme="purple"] {
     --primary: 264 99% 65%;
+    --primary-foreground: 0 0% 100%;
     --primary-hsl: 264, 99%, 65%;
     --primary-rgb: 140, 77, 254;
     --primary-color: #8C4DFE;
@@ -68,16 +79,10 @@
 
   [data-theme="blue"] {
     --primary: 209 99% 65%;
+    --primary-foreground: 0 0% 100%;
     --primary-hsl: 209, 99%, 65%;
     --primary-rgb: 77, 174, 254;
     --primary-color: #4DAEFE;
-  }
-
-  [data-theme="text-primary"] {
-    --primary: 142 76% 30%; /* Darker default for custom theme */
-    --primary-hsl: 142, 76%, 30%;
-    --primary-rgb: 18, 134, 60;
-    --primary-color: #12863C;
   }
 }
 

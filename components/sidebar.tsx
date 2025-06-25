@@ -21,7 +21,7 @@ const routes = [
   {
     label: "Dashboard",
     icon: Home,
-    href: "/",
+    href: "/dashboard",
     color: "text-primary",
   },
   {

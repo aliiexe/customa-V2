@@ -3,12 +3,11 @@
 import { useState, useEffect, use } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, CheckCircle, Truck, PackageCheck, Save } from "lucide-react"
-import Link from "next/link"
+import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
+import { ArrowLeft, DollarSign, Calendar, Truck, User, Hash, FileText, CheckCircle2 } from "lucide-react"
+import Link from "next/link"
 
 // Types
 interface InvoiceItem {
@@ -22,9 +21,8 @@ interface InvoiceItem {
 
 interface Invoice {
   id: number
+  clientId: number
   clientName: string
-  clientEmail: string
-  clientAddress: string
   totalAmount: number
   dateCreated: string
   deliveryDate: string
@@ -38,7 +36,6 @@ export default function ClientInvoiceDetailPage({ params }: { params: Promise<{ 
   const [invoice, setInvoice] = useState<Invoice | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isUpdating, setIsUpdating] = useState(false)
-  const [deliveryStatus, setDeliveryStatus] = useState<Invoice["delivery_status"] | "">("")
 
   useEffect(() => {
     const fetchInvoice = async () => {
@@ -47,8 +44,9 @@ export default function ClientInvoiceDetailPage({ params }: { params: Promise<{ 
         if (response.ok) {
           const data = await response.json()
           setInvoice(data)
-          setDeliveryStatus(data.delivery_status)
         }
+      } catch (error) {
+        console.error("Error fetching invoice:", error)
       } finally {
         setIsLoading(false)
       }
@@ -56,17 +54,22 @@ export default function ClientInvoiceDetailPage({ params }: { params: Promise<{ 
     fetchInvoice()
   }, [invoiceId])
 
-  const getPaymentStatusBadge = (status: Invoice["payment_status"]) => {
-    return status === "PAID" ? 
-      <Badge className="bg-green-100 text-green-800">Paid</Badge> : 
-      <Badge className="bg-red-100 text-red-800">Unpaid</Badge>
+  const getPaymentStatusBadge = (status: "PAID" | "UNPAID") => {
+    const baseClasses = "px-3 py-1 rounded-full text-sm font-medium"
+    return status === "PAID" 
+      ? <Badge className={`${baseClasses} bg-green-100 text-green-800 border border-green-200`}>Paid</Badge>
+      : <Badge className={`${baseClasses} bg-red-100 text-red-800 border border-red-200`}>Unpaid</Badge>
   }
   
-  const getDeliveryStatusBadge = (status: Invoice["delivery_status"]) => {
+  const getDeliveryStatusBadge = (status: "IN_PROCESS" | "SENDING" | "DELIVERED") => {
+    const baseClasses = "px-3 py-1 rounded-full text-sm font-medium"
     switch (status) {
-      case "IN_PROCESS": return <Badge className="bg-yellow-100 text-yellow-800">In Process</Badge>
-      case "SENDING": return <Badge className="bg-blue-100 text-blue-800">Sending</Badge>
-      case "DELIVERED": return <Badge className="bg-purple-100 text-purple-800">Delivered</Badge>
+      case "IN_PROCESS": 
+        return <Badge className={`${baseClasses} bg-amber-100 text-amber-800 border border-amber-200`}>In Process</Badge>
+      case "SENDING": 
+        return <Badge className={`${baseClasses} bg-blue-100 text-blue-800 border border-blue-200`}>Sending</Badge>
+      case "DELIVERED": 
+        return <Badge className={`${baseClasses} bg-green-100 text-green-800 border border-green-200`}>Delivered</Badge>
     }
   }
 
@@ -82,7 +85,6 @@ export default function ClientInvoiceDetailPage({ params }: { params: Promise<{ 
       if (response.ok) {
         const updatedInvoice = await response.json()
         setInvoice(updatedInvoice)
-        setDeliveryStatus(updatedInvoice.delivery_status)
       } else {
         alert('Failed to update status.')
       }
@@ -91,90 +93,211 @@ export default function ClientInvoiceDetailPage({ params }: { params: Promise<{ 
     }
   }
 
-  if (isLoading) return <div className="p-6">Loading...</div>
-  if (!invoice) return <div className="p-6 text-red-500">Invoice not found.</div>
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-lg">Loading invoice...</div>
+      </div>
+    )
+  }
+
+  if (!invoice) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-lg text-red-600">Invoice not found</div>
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-6 bg-white min-h-screen p-6">
-      <div className="flex items-center justify-between">
-        <Button variant="outline" size="icon" asChild>
-          <Link href="/invoices/client"><ArrowLeft className="h-4 w-4" /></Link>
-        </Button>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-800">
-          Invoice #{invoice.id.toString().padStart(5, "0")}
-        </h1>
-        <div>{getPaymentStatusBadge(invoice.payment_status)} {getDeliveryStatusBadge(invoice.delivery_status)}</div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="md:col-span-1">
-          <CardHeader><CardTitle>Client Details</CardTitle></CardHeader>
-          <CardContent className="space-y-2">
-            <p><strong>{invoice.clientName}</strong></p>
-            <p>{invoice.clientEmail}</p>
-            <p>{invoice.clientAddress}</p>
-          </CardContent>
-        </Card>
-        <Card className="md:col-span-1">
-          <CardHeader><CardTitle>Invoice Details</CardTitle></CardHeader>
-          <CardContent className="space-y-2">
-            <p><strong>Date Created:</strong> {format(new Date(invoice.dateCreated), "MMM dd, yyyy")}</p>
-            <p><strong>Delivery Date:</strong> {format(new Date(invoice.deliveryDate), "MMM dd, yyyy")}</p>
-            <p className="text-xl"><strong>Total:</strong> ${parseFloat(invoice.totalAmount.toString()).toFixed(2)}</p>
-          </CardContent>
-        </Card>
-        <Card className="md:col-span-1">
-          <CardHeader><CardTitle>Actions</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            {invoice.payment_status === "UNPAID" && (
-              <Button onClick={() => handleUpdateStatus({ payment_status: "PAID" })} disabled={isUpdating} className="w-full">
-                <CheckCircle className="mr-2 h-4 w-4" /> Mark as Paid
-              </Button>
-            )}
-            <div className="flex items-center space-x-2">
-              <Select value={deliveryStatus} onValueChange={(val) => setDeliveryStatus(val as Invoice["delivery_status"])}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="IN_PROCESS">In Process</SelectItem>
-                  <SelectItem value="SENDING">Sending</SelectItem>
-                  <SelectItem value="DELIVERED">Delivered</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button onClick={() => handleUpdateStatus({ delivery_status: deliveryStatus as Invoice["delivery_status"] })} disabled={isUpdating || deliveryStatus === invoice.delivery_status}>
-                <Save className="h-4 w-4" />
-              </Button>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-4 mb-6">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              asChild
+              className="shadow-sm border-gray-200 hover:bg-gray-50"
+            >
+              <Link href="/invoices/client">
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            </Button>
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2">
+                <Hash className="h-6 w-6 text-primary" />
+                <h1 className="text-3xl font-bold text-gray-900">
+                  Invoice #{invoice.id.toString().padStart(4, "0")}
+                </h1>
+                <div className="flex gap-2">
+                  {getPaymentStatusBadge(invoice.payment_status)}
+                  {getDeliveryStatusBadge(invoice.delivery_status)}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-gray-600">
+                <User className="h-4 w-4" />
+                <span className="font-medium">{invoice.clientName}</span>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </div>
 
-      <Card>
-        <CardHeader><CardTitle>Invoice Items</CardTitle></CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Product</TableHead>
-                <TableHead>Reference</TableHead>
-                <TableHead className="text-right">Quantity</TableHead>
-                <TableHead className="text-right">Unit Price</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {invoice.items.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>{item.productName}</TableCell>
-                  <TableCell>{item.productReference}</TableCell>
-                  <TableCell className="text-right">{item.quantity}</TableCell>
-                  <TableCell className="text-right">${parseFloat(item.unitPrice.toString()).toFixed(2)}</TableCell>
-                  <TableCell className="text-right font-medium">${parseFloat(item.totalPrice.toString()).toFixed(2)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Invoice Details */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Invoice Information */}
+            <Card className="shadow-sm border-gray-200">
+              <CardHeader className="bg-primary/5 border-b border-gray-100">
+                <CardTitle className="text-primary flex items-center gap-2">
+                  <DollarSign className="h-5 w-5" />
+                  Invoice Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-4">
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Client</label>
+                    <p className="font-semibold text-gray-900">{invoice.clientName}</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      Created
+                    </label>
+                    <p className="font-medium text-gray-900">
+                      {format(new Date(invoice.dateCreated), "MMM dd, yyyy")}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 flex items-center gap-1">
+                      <Truck className="h-4 w-4" />
+                      Delivery
+                    </label>
+                    <p className="font-medium text-gray-900">
+                      {format(new Date(invoice.deliveryDate), "MMM dd, yyyy")}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Payment Status</label>
+                    <div className="mt-1">{getPaymentStatusBadge(invoice.payment_status)}</div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Delivery Status</label>
+                    <div className="mt-1">{getDeliveryStatusBadge(invoice.delivery_status)}</div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Total Amount</label>
+                  <p className="text-2xl font-bold text-primary">
+                    ${Number(invoice.totalAmount).toFixed(2)}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Actions */}
+            <Card className="shadow-sm border-gray-200">
+              <CardHeader className="bg-gray-50 border-b border-gray-100">
+                <CardTitle className="text-gray-700">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-3">
+                {invoice.payment_status === "UNPAID" && (
+                  <Button 
+                    onClick={() => handleUpdateStatus({ payment_status: "PAID" })}
+                    disabled={isUpdating}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Mark as Paid
+                  </Button>
+                )}
+
+                {invoice.delivery_status === "IN_PROCESS" && (
+                  <Button 
+                    onClick={() => handleUpdateStatus({ delivery_status: "SENDING" })}
+                    disabled={isUpdating}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
+                    <Truck className="mr-2 h-4 w-4" />
+                    Mark as Sending
+                  </Button>
+                )}
+
+                {invoice.delivery_status === "SENDING" && (
+                  <Button 
+                    onClick={() => handleUpdateStatus({ delivery_status: "DELIVERED" })}
+                    disabled={isUpdating}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Mark as Delivered
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Invoice Items */}
+          <div className="lg:col-span-2">
+            <Card className="shadow-sm border-gray-200">
+              <CardHeader className="bg-primary/5 border-b border-gray-100">
+                <CardTitle className="text-primary flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Invoice Items ({invoice.items.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gray-50 border-b border-gray-200">
+                        <TableHead className="font-semibold text-gray-700">Product</TableHead>
+                        <TableHead className="font-semibold text-gray-700">Reference</TableHead>
+                        <TableHead className="text-right font-semibold text-gray-700">Quantity</TableHead>
+                        <TableHead className="text-right font-semibold text-gray-700">Unit Price</TableHead>
+                        <TableHead className="text-right font-semibold text-gray-700">Total</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {invoice.items.map((item) => (
+                        <TableRow key={item.id} className="border-b border-gray-100 hover:bg-gray-50/50">
+                          <TableCell className="font-medium text-gray-900">{item.productName}</TableCell>
+                          <TableCell className="text-gray-600">{item.productReference}</TableCell>
+                          <TableCell className="text-right text-gray-900">{item.quantity}</TableCell>
+                          <TableCell className="text-right text-gray-900">
+                            ${Number(item.unitPrice).toFixed(2)}
+                          </TableCell>
+                          <TableCell className="text-right font-semibold text-gray-900">
+                            ${Number(item.totalPrice).toFixed(2)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {/* Total Row */}
+                      <TableRow className="bg-primary/5 border-t-2 border-primary/20">
+                        <TableCell colSpan={4} className="text-right font-bold text-gray-900">
+                          Total Amount:
+                        </TableCell>
+                        <TableCell className="text-right font-bold text-xl text-primary">
+                          ${Number(invoice.totalAmount).toFixed(2)}
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
     </div>
   )
-} 
+}

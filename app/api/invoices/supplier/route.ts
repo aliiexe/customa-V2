@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server"
-import { query } from "@/lib/db"
+import { query, transaction } from "@/lib/db"
 
 export async function GET(request: Request) {
   try {
+    console.log("GET /api/invoices/supplier called")
     const { searchParams } = new URL(request.url)
     const supplierId = searchParams.get("supplierId")
-    const status = searchParams.get("status")
+    const payment_status = searchParams.get("payment_status")
+    const delivery_status = searchParams.get("delivery_status")
     const startDate = searchParams.get("startDate")
     const endDate = searchParams.get("endDate")
+
+    console.log("Search params:", { supplierId, payment_status, delivery_status, startDate, endDate })
 
     let sql = `
       SELECT 
@@ -25,14 +29,19 @@ export async function GET(request: Request) {
 
     const params: any[] = []
 
-    if (supplierId) {
+    if (supplierId && supplierId !== "all") {
       sql += " AND i.supplierId = ?"
       params.push(supplierId)
     }
 
-    if (status) {
+    if (payment_status && payment_status !== "all") {
       sql += " AND i.payment_status = ?"
-      params.push(status)
+      params.push(payment_status)
+    }
+
+    if (delivery_status && delivery_status !== "all") {
+      sql += " AND i.delivery_status = ?"
+      params.push(delivery_status)
     }
 
     if (startDate) {
@@ -45,10 +54,14 @@ export async function GET(request: Request) {
       params.push(endDate)
     }
 
-    sql += " GROUP BY i.id, s.name, i.supplierId, i.quoteId, i.totalAmount, i.dateCreated, i.payment_status, i.delivery_status, i.createdAt, i.updatedAt"
+    sql += " GROUP BY i.id, s.name, i.supplierId, i.quoteId, i.totalAmount, i.dateCreated, i.deliveryDate, i.payment_status, i.delivery_status, i.createdAt, i.updatedAt"
     sql += " ORDER BY i.dateCreated DESC"
 
+    console.log("SQL query:", sql)
+    console.log("SQL params:", params)
+
     const invoices = await query(sql, params)
+    console.log("Invoices fetched:", invoices)
 
     return NextResponse.json(invoices)
   } catch (error) {
@@ -61,19 +74,7 @@ export async function POST(request: Request) {
   try {
     const invoice = await request.json()
 
-    // Start a transaction
-    const connection = await (await import("mysql2/promise")).createConnection({
-      host: process.env.TIDB_HOST || "gateway01.us-west-2.prod.aws.tidbcloud.com",
-      port: Number.parseInt(process.env.TIDB_PORT || "4000"),
-      user: process.env.TIDB_USER || "3cCV8A7jGy25fjk.root",
-      password: process.env.TIDB_PASSWORD || "S9SQ3wgf8ntySRRc",
-      database: process.env.TIDB_DATABASE || "test",
-      ssl: { rejectUnauthorized: true },
-    })
-
-    await connection.beginTransaction()
-
-    try {
+    const result = await transaction(async (connection) => {
       // Insert invoice header
       const [invoiceResult] = await connection.execute(
         `INSERT INTO supplier_invoices (
@@ -103,13 +104,15 @@ export async function POST(request: Request) {
           )
 
           // Update product provisional stock
-          await connection.execute(
-            `UPDATE products 
-             SET provisionalStock = provisionalStock + ?, 
-                 updatedAt = CURRENT_TIMESTAMP
-             WHERE id = ?`,
-            [item.quantity, item.productId],
-          )
+          if (invoice.updateStock) {
+            await connection.execute(
+              `UPDATE products 
+               SET provisionalStock = provisionalStock + ?, 
+                   updatedAt = CURRENT_TIMESTAMP
+               WHERE id = ?`,
+              [item.quantity, item.productId],
+            )
+          }
         }
       }
 
@@ -118,29 +121,25 @@ export async function POST(request: Request) {
         await connection.execute(
           `UPDATE supplier_quotes 
            SET status = 'CONVERTED', 
+               convertedInvoiceId = ?,
                updatedAt = CURRENT_TIMESTAMP
            WHERE id = ?`,
-          [invoice.quoteId],
+          [invoiceId, invoice.quoteId],
         )
       }
 
-      await connection.commit()
+      return invoiceId
+    })
 
-      return NextResponse.json(
-        {
-          message: "Invoice created successfully",
-          id: invoiceId,
-        },
-        { status: 201 },
-      )
-    } catch (error) {
-      await connection.rollback()
-      throw error
-    } finally {
-      connection.end()
-    }
+    return NextResponse.json(
+      {
+        message: "Invoice created successfully",
+        id: result,
+      },
+      { status: 201 },
+    )
   } catch (error) {
     console.error("Error creating supplier invoice:", error)
     return NextResponse.json({ error: "Failed to create supplier invoice" }, { status: 500 })
   }
-} 
+}

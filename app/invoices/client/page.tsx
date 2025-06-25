@@ -84,28 +84,54 @@ export default function ClientInvoicesPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Client Invoices</h1>
-        <Button asChild>
-          <Link href="/invoices/client/new">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Create Invoice
-          </Link>
-        </Button>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+                Client Invoices
+              </h1>
+              <p className="mt-2 text-gray-600">
+                Manage and track all your client invoices in one place
+              </p>
+            </div>
+            <Button 
+              asChild 
+              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
+            >
+              <Link href="/invoices/client/new">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Create Invoice
+              </Link>
+            </Button>
+          </div>
+        </div>
 
-      <InvoiceFilters 
-        clients={clients} 
-        filters={filters} 
-        onFilterChange={handleFilterChange} 
-        onResetFilters={handleResetFilters} 
-      />
-      {isLoading ? (
-        <p>Loading invoices...</p>
-      ) : (
-        <ClientInvoicesTable invoices={invoices} />
-      )}
+        {/* Filters */}
+        <div className="mb-6">
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <InvoiceFilters 
+              clients={clients} 
+              filters={filters} 
+              onFilterChange={handleFilterChange} 
+              onResetFilters={handleResetFilters} 
+            />
+          </div>
+        </div>
+
+        {/* Content */}
+        {isLoading ? (
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-8 text-center">
+              <div className="text-gray-500">Loading invoices...</div>
+            </div>
+          </div>
+        ) : (
+          <ClientInvoicesTable invoices={invoices} />
+        )}
+      </div>
     </div>
   )
 }

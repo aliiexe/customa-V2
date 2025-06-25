@@ -1,17 +1,19 @@
-import { NextResponse } from "next/server"
-import { query } from "@/lib/db"
+import { NextResponse } from "next/server";
+import { query } from "@/lib/db";
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url)
-    const search = searchParams.get("search")
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get("search");
 
     let sql = `
       SELECT 
         s.*,
         COUNT(DISTINCT p.id) as productCount,
         COUNT(DISTINCT si.id) as invoiceCount,
-        SUM(CASE WHEN si.payment_status = 'UNPAID' THEN si.totalAmount ELSE 0 END) as unpaidAmount
+        COALESCE(SUM(CASE WHEN si.payment_status = 'UNPAID' THEN si.totalAmount ELSE 0 END), 0) as unpaidAmount,
+        COALESCE(SUM(CASE WHEN si.payment_status = 'PAID' THEN si.totalAmount ELSE 0 END), 0) as totalSpent,
+        MAX(si.dateCreated) as lastOrderDate
       FROM 
         suppliers s
       LEFT JOIN 
@@ -19,59 +21,73 @@ export async function GET(request: Request) {
       LEFT JOIN 
         supplier_invoices si ON s.id = si.supplierId
       WHERE 1=1
-    `
+    `;
 
-    const params: any[] = []
+    const params: any[] = [];
 
     if (search) {
-      sql += " AND (s.name LIKE ? OR s.contactName LIKE ? OR s.email LIKE ?)"
-      const searchTerm = `%${search}%`
-      params.push(searchTerm, searchTerm, searchTerm)
+      sql += " AND (s.name LIKE ? OR s.contactName LIKE ? OR s.email LIKE ? OR s.phoneNumber LIKE ?)";
+      const searchTerm = `%${search}%`;
+      params.push(searchTerm, searchTerm, searchTerm, searchTerm);
     }
 
-    sql +=
-      " GROUP BY s.id, s.name, s.contactName, s.address, s.email, s.phoneNumber, s.website, s.createdAt, s.updatedAt"
-    sql += " ORDER BY s.name ASC"
+    sql += " GROUP BY s.id, s.name, s.contactName, s.address, s.email, s.phoneNumber, s.website, s.createdAt, s.updatedAt";
+    sql += " ORDER BY s.name ASC";
 
-    const suppliers = await query(sql, params)
+    const suppliers = await query(sql, params);
 
-    return NextResponse.json(suppliers)
+    // Convert numeric fields to proper numbers
+    const formattedSuppliers = Array.isArray(suppliers) 
+      ? suppliers.map((supplier: any) => ({
+          ...supplier,
+          productCount: Number(supplier.productCount || 0),
+          invoiceCount: Number(supplier.invoiceCount || 0),
+          totalSpent: Number(supplier.totalSpent || 0), // Only from PAID invoices
+          unpaidAmount: Number(supplier.unpaidAmount || 0) // Only from UNPAID invoices
+        }))
+      : [];
+
+    return NextResponse.json(formattedSuppliers);
   } catch (error) {
-    console.error("Error fetching suppliers:", error)
-    return NextResponse.json({ error: "Failed to fetch suppliers" }, { status: 500 })
+    console.error("Error fetching suppliers:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch suppliers" },
+      { status: 500 }
+    );
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const supplier = await request.json()
+    const body = await request.json();
+    const { name, contactName, address, email, phoneNumber, website } = body;
 
-    const sql = `
-      INSERT INTO suppliers (
-        name, contactName, address, email, phoneNumber, website
-      ) VALUES (?, ?, ?, ?, ?, ?)
-    `
+    if (!name || !contactName || !address || !email || !phoneNumber) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
 
-    const params = [
-      supplier.name,
-      supplier.contactName,
-      supplier.address,
-      supplier.email,
-      supplier.phoneNumber,
-      supplier.website,
-    ]
+    // Check if supplier already exists
+    const existingSupplier = await query(
+      "SELECT id FROM suppliers WHERE email = ? OR (name = ? AND phoneNumber = ?)",
+      [email, name, phoneNumber]
+    );
 
-    const result = await query(sql, params)
+    if (Array.isArray(existingSupplier) && existingSupplier.length > 0) {
+      return NextResponse.json({ error: "Supplier with this email or name/phone already exists" }, { status: 409 });
+    }
+
+    const result = await query(
+      `INSERT INTO suppliers (name, contactName, address, email, phoneNumber, website) 
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [name, contactName, address, email, phoneNumber, website || null]
+    );
 
     return NextResponse.json(
-      {
-        message: "Supplier created successfully",
-        id: (result as any).insertId,
-      },
-      { status: 201 },
-    )
+      { message: "Supplier created successfully", id: (result as any).insertId },
+      { status: 201 }
+    );
   } catch (error) {
-    console.error("Error creating supplier:", error)
-    return NextResponse.json({ error: "Failed to create supplier" }, { status: 500 })
+    console.error("Error creating supplier:", error);
+    return NextResponse.json({ error: "Failed to create supplier" }, { status: 500 });
   }
 }

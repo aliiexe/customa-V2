@@ -7,12 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
-import { ArrowLeft, Send, CheckCircle } from "lucide-react"
+import { ArrowLeft, DollarSign, Calendar, Truck, Hash, FileText, CheckCircle2, Send } from "lucide-react"
 import Link from "next/link"
 
 interface InvoiceItem {
   id: number
-  productId: number
   productName: string
   productReference: string
   quantity: number
@@ -24,11 +23,11 @@ interface Invoice {
   id: number
   supplierId: number
   supplierName: string
-  supplierEmail: string
-  supplierAddress: string
   totalAmount: number
   dateCreated: string
-  status: "in_process" | "sent" | "received"
+  deliveryDate: string
+  payment_status: "PAID" | "UNPAID"
+  delivery_status: "IN_PROCESS" | "SENDING" | "DELIVERED"
   items: InvoiceItem[]
 }
 
@@ -75,128 +74,227 @@ export default function SupplierInvoicePage() {
     }
   }
 
-  const getStatusBadge = (status: string) => {
+  const getPaymentStatusBadge = (status: "PAID" | "UNPAID") => {
+    const baseClasses = "px-3 py-1 rounded-full text-sm font-medium"
+    return status === "PAID" 
+      ? <Badge className={`${baseClasses} bg-green-100 text-green-800 border border-green-200`}>Paid</Badge>
+      : <Badge className={`${baseClasses} bg-red-100 text-red-800 border border-red-200`}>Unpaid</Badge>
+  }
+  
+  const getDeliveryStatusBadge = (status: "IN_PROCESS" | "SENDING" | "DELIVERED") => {
+    const baseClasses = "px-3 py-1 rounded-full text-sm font-medium"
     switch (status) {
-      case "in_process":
-        return <Badge className="bg-yellow-100 text-yellow-800">In Process</Badge>
-      case "sent":
-        return <Badge className="bg-blue-100 text-blue-800">Sent</Badge>
-      case "received":
-        return <Badge className="bg-green-100 text-green-800">Received</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
+      case "IN_PROCESS": 
+        return <Badge className={`${baseClasses} bg-amber-100 text-amber-800 border border-amber-200`}>In Process</Badge>
+      case "SENDING": 
+        return <Badge className={`${baseClasses} bg-blue-100 text-blue-800 border border-blue-200`}>Sending</Badge>
+      case "DELIVERED": 
+        return <Badge className={`${baseClasses} bg-green-100 text-green-800 border border-green-200`}>Delivered</Badge>
     }
   }
 
   if (loading) {
-    return <div>Loading...</div>
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-lg">Loading invoice...</div>
+      </div>
+    )
   }
 
   if (!invoice) {
-    return <div>Invoice not found</div>
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-lg text-red-600">Invoice not found</div>
+      </div>
+    )
   }
 
   return (
-    <div className="space-y-6 p-6 bg-white min-h-screen">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/invoices/supplier">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <h1 className="text-3xl font-bold tracking-tight text-blue-600">
-            Invoice #{invoice.id.toString().padStart(5, "0")}
-          </h1>
-        </div>
-        <div className="flex space-x-2">
-          {invoice.status === "in_process" && (
-            <Button onClick={() => handleStatusUpdate("sent")} className="bg-blue-600 hover:bg-blue-700">
-              <Send className="mr-2 h-4 w-4" />
-              Mark as Sent
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-4 mb-6">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              asChild
+              className="shadow-sm border-gray-200 hover:bg-gray-50"
+            >
+              <Link href="/invoices/supplier">
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
             </Button>
-          )}
-          {invoice.status === "sent" && (
-            <Button onClick={() => handleStatusUpdate("received")} className="bg-green-600 hover:bg-green-700">
-              <CheckCircle className="mr-2 h-4 w-4" />
-              Mark as Received
-            </Button>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Supplier Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <p className="font-semibold">{invoice.supplierName}</p>
-              <p>{invoice.supplierEmail}</p>
-              <p className="whitespace-pre-line">{invoice.supplierAddress}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Invoice Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="font-semibold">Status:</span>
-                {getStatusBadge(invoice.status)}
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2">
+                <Hash className="h-6 w-6 text-primary" />
+                <h1 className="text-3xl font-bold text-gray-900">
+                  Supplier Invoice #{invoice.id.toString().padStart(4, "0")}
+                </h1>
+                <div className="flex gap-2">
+                  {getPaymentStatusBadge(invoice.payment_status)}
+                  {getDeliveryStatusBadge(invoice.delivery_status)}
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="font-semibold">Date Created:</span>
-                <span>{format(new Date(invoice.dateCreated), "MMM dd, yyyy")}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-semibold">Total Amount:</span>
-                <span>${Number(invoice.totalAmount || 0).toFixed(2)}</span>
+              <div className="flex items-center gap-2 text-gray-600">
+                <Truck className="h-4 w-4" />
+                <span className="font-medium">{invoice.supplierName}</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Items</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Product</TableHead>
-                <TableHead>Reference</TableHead>
-                <TableHead className="text-right">Quantity</TableHead>
-                <TableHead className="text-right">Unit Price</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {invoice.items.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>{item.productName}</TableCell>
-                  <TableCell>{item.productReference}</TableCell>
-                  <TableCell className="text-right">{item.quantity}</TableCell>
-                  <TableCell className="text-right">${Number(item.unitPrice || 0).toFixed(2)}</TableCell>
-                  <TableCell className="text-right">${Number(item.totalPrice || 0).toFixed(2)}</TableCell>
-                </TableRow>
-              ))}
-              <TableRow>
-                <TableCell colSpan={4} className="text-right font-semibold">
-                  Total:
-                </TableCell>
-                <TableCell className="text-right font-semibold">${Number(invoice.totalAmount || 0).toFixed(2)}</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Invoice Details */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Invoice Information */}
+            <Card className="shadow-sm border-gray-200">
+              <CardHeader className="bg-primary/5 border-b border-gray-100">
+                <CardTitle className="text-primary flex items-center gap-2">
+                  <DollarSign className="h-5 w-5" />
+                  Invoice Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-4">
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Supplier</label>
+                    <p className="font-semibold text-gray-900">{invoice.supplierName}</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      Created
+                    </label>
+                    <p className="font-medium text-gray-900">
+                      {format(new Date(invoice.dateCreated), "MMM dd, yyyy")}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 flex items-center gap-1">
+                      <Truck className="h-4 w-4" />
+                      Delivery
+                    </label>
+                    <p className="font-medium text-gray-900">
+                      {format(new Date(invoice.deliveryDate), "MMM dd, yyyy")}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Payment Status</label>
+                    <div className="mt-1">{getPaymentStatusBadge(invoice.payment_status)}</div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Delivery Status</label>
+                    <div className="mt-1">{getDeliveryStatusBadge(invoice.delivery_status)}</div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Total Amount</label>
+                  <p className="text-2xl font-bold text-primary">
+                    ${Number(invoice.totalAmount).toFixed(2)}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Actions */}
+            <Card className="shadow-sm border-gray-200">
+              <CardHeader className="bg-gray-50 border-b border-gray-100">
+                <CardTitle className="text-gray-700">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-3">
+                {invoice.payment_status === "UNPAID" && (
+                  <Button 
+                    onClick={() => handleStatusUpdate("PAID")}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Mark as Paid
+                  </Button>
+                )}
+
+                {invoice.delivery_status === "IN_PROCESS" && (
+                  <Button 
+                    onClick={() => handleStatusUpdate("SENDING")}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
+                    <Send className="mr-2 h-4 w-4" />
+                    Mark as Sending
+                  </Button>
+                )}
+
+                {invoice.delivery_status === "SENDING" && (
+                  <Button 
+                    onClick={() => handleStatusUpdate("DELIVERED")}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Mark as Delivered
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Invoice Items */}
+          <div className="lg:col-span-2">
+            <Card className="shadow-sm border-gray-200">
+              <CardHeader className="bg-primary/5 border-b border-gray-100">
+                <CardTitle className="text-primary flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Invoice Items ({invoice.items.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gray-50 border-b border-gray-200">
+                        <TableHead className="font-semibold text-gray-700">Product</TableHead>
+                        <TableHead className="font-semibold text-gray-700">Reference</TableHead>
+                        <TableHead className="text-right font-semibold text-gray-700">Quantity</TableHead>
+                        <TableHead className="text-right font-semibold text-gray-700">Unit Price</TableHead>
+                        <TableHead className="text-right font-semibold text-gray-700">Total</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {invoice.items.map((item) => (
+                        <TableRow key={item.id} className="border-b border-gray-100 hover:bg-gray-50/50">
+                          <TableCell className="font-medium text-gray-900">{item.productName}</TableCell>
+                          <TableCell className="text-gray-600">{item.productReference}</TableCell>
+                          <TableCell className="text-right text-gray-900">{item.quantity}</TableCell>
+                          <TableCell className="text-right text-gray-900">
+                            ${Number(item.unitPrice || 0).toFixed(2)}
+                          </TableCell>
+                          <TableCell className="text-right font-semibold text-gray-900">
+                            ${Number(item.totalPrice || 0).toFixed(2)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {/* Total Row */}
+                      <TableRow className="bg-primary/5 border-t-2 border-primary/20">
+                        <TableCell colSpan={4} className="text-right font-bold text-gray-900">
+                          Total Amount:
+                        </TableCell>
+                        <TableCell className="text-right font-bold text-xl text-primary">
+                          ${Number(invoice.totalAmount || 0).toFixed(2)}
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
     </div>
   )
-} 
+}

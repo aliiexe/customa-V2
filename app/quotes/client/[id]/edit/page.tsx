@@ -255,7 +255,7 @@ export default function EditQuotePage({ params }: { params: Promise<{ id: string
             </Link>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-green-600">
+            <h1 className="text-3xl font-bold tracking-tight text-primary">
               Edit Quote #{quote.id.toString().padStart(4, "0")}
             </h1>
             <p className="text-gray-600">{quote.clientName}</p>
@@ -268,7 +268,7 @@ export default function EditQuotePage({ params }: { params: Promise<{ id: string
         <div className="lg:col-span-1 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-green-600">Quote Details</CardTitle>
+              <CardTitle className="text-primary">Quote Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -302,7 +302,7 @@ export default function EditQuotePage({ params }: { params: Promise<{ id: string
           {/* Summary */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-green-600">Summary</CardTitle>
+              <CardTitle className="text-primary">Summary</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
@@ -312,7 +312,7 @@ export default function EditQuotePage({ params }: { params: Promise<{ id: string
                 </div>
                 <div className="flex justify-between">
                   <span>Total:</span>
-                  <span className="font-bold text-lg text-green-600">
+                  <span className="font-bold text-lg text-primary">
                     ${(parseFloat(calculateTotal().toString()) || 0).toFixed(2)}
                   </span>
                 </div>
@@ -333,7 +333,7 @@ export default function EditQuotePage({ params }: { params: Promise<{ id: string
             <Button 
               onClick={sendToClient} 
               disabled={isSaving}
-              className="w-full bg-green-600 hover:bg-green-700"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               <Send className="mr-2 h-4 w-4" />
               Save & Send to Client
@@ -346,8 +346,8 @@ export default function EditQuotePage({ params }: { params: Promise<{ id: string
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-green-600">Quote Items</CardTitle>
-                <Button onClick={addItem} size="sm">
+                <CardTitle className="text-primary">Quote Items</CardTitle>
+                <Button onClick={addItem} size="sm" className="bg-primary hover:bg-primary/90">
                   <Plus className="mr-2 h-4 w-4" />
                   Add Item
                 </Button>
@@ -435,4 +435,4 @@ export default function EditQuotePage({ params }: { params: Promise<{ id: string
       </div>
     </div>
   )
-} 
+}

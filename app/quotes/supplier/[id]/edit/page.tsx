@@ -234,13 +234,13 @@ export default function EditSupplierQuotePage({ params }: { params: Promise<{ id
     <div className="max-w-4xl mx-auto py-8">
       <Card>
         <CardHeader>
-          <CardTitle>Edit Supplier Quote</CardTitle>
+          <CardTitle className="text-primary">Edit Supplier Quote</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="mb-4 flex items-center justify-between">
             <div>
               <Label>Supplier</Label>
-              <div className="font-semibold text-green-700">{quote.supplierName}</div>
+              <div className="font-semibold text-primary">{quote.supplierName}</div>
             </div>
             <Button asChild variant="outline">
               <Link href="/quotes/supplier">
@@ -262,7 +262,7 @@ export default function EditSupplierQuotePage({ params }: { params: Promise<{ id
           <div className="mb-4">
             <div className="flex items-center justify-between mb-2">
               <Label>Items</Label>
-              <Button type="button" variant="outline" onClick={addItem}>
+              <Button type="button" variant="outline" onClick={addItem} className="border-primary text-primary hover:bg-primary/10">
                 <Plus className="h-4 w-4 mr-2" /> Add Item
               </Button>
             </div>
@@ -341,6 +341,7 @@ export default function EditSupplierQuotePage({ params }: { params: Promise<{ id
               type="button"
               onClick={sendToSupplier}
               disabled={isSaving}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               <Send className="mr-2 h-4 w-4" /> Send to Supplier
             </Button>
@@ -349,4 +350,4 @@ export default function EditSupplierQuotePage({ params }: { params: Promise<{ id
       </Card>
     </div>
   )
-} 
+}

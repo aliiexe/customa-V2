@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ArrowLeft, Edit, Send, CheckCircle, FileText } from "lucide-react"
+import { ArrowLeft, Edit, Send, CheckCircle, FileText, Calendar, DollarSign, Truck, Hash } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
@@ -16,10 +16,10 @@ interface QuoteItem {
   productId: number
   productName: string
   productReference: string
-  quantity: number
-  unitPrice: number
-  totalPrice: number
   originalPrice: number
+  unitPrice: number
+  quantity: number
+  totalPrice: number
 }
 
 interface Quote {
@@ -28,11 +28,11 @@ interface Quote {
   supplierName: string
   totalAmount: number
   dateCreated: string
-  validUntil: string
+  validUntil?: string
   status: QuoteStatus
-  notes: string
-  convertedInvoiceId?: number
   items: QuoteItem[]
+  notes?: string
+  convertedInvoiceId?: number
 }
 
 export default function SupplierQuoteDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -62,33 +62,20 @@ export default function SupplierQuoteDetailPage({ params }: { params: Promise<{ 
   }, [quoteId])
 
   const getStatusBadge = (status: QuoteStatus) => {
+    const baseClasses = "px-3 py-1 rounded-full text-sm font-medium"
     switch (status) {
       case QuoteStatus.DRAFT:
-        return (
-          <Badge variant="secondary" className="bg-gray-100 text-gray-800">
-            Draft
-          </Badge>
-        )
+        return <Badge className={`${baseClasses} bg-gray-100 text-gray-800 border border-gray-200`}>Draft</Badge>
       case QuoteStatus.PENDING:
-        return (
-          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-            Pending
-          </Badge>
-        )
+        return <Badge className={`${baseClasses} bg-amber-100 text-amber-800 border border-amber-200`}>Pending</Badge>
+      case QuoteStatus.CONFIRMED:
+        return <Badge className={`${baseClasses} bg-blue-100 text-blue-800 border border-blue-200`}>Confirmed</Badge>
       case QuoteStatus.APPROVED:
-        return (
-          <Badge variant="secondary" className="bg-green-100 text-green-800">
-            Approved
-          </Badge>
-        )
+        return <Badge className={`${baseClasses} bg-green-100 text-green-800 border border-green-200`}>Approved</Badge>
       case QuoteStatus.REJECTED:
-        return <Badge variant="destructive">Rejected</Badge>
+        return <Badge className={`${baseClasses} bg-red-100 text-red-800 border border-red-200`}>Rejected</Badge>
       case QuoteStatus.CONVERTED:
-        return (
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-            Converted
-          </Badge>
-        )
+        return <Badge className={`${baseClasses} bg-purple-100 text-purple-800 border border-purple-200`}>Converted</Badge>
       default:
         return <Badge variant="outline">{status}</Badge>
     }
@@ -164,7 +151,7 @@ export default function SupplierQuoteDetailPage({ params }: { params: Promise<{ 
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-lg">Loading quote...</div>
       </div>
     )
@@ -172,109 +159,223 @@ export default function SupplierQuoteDetailPage({ params }: { params: Promise<{ 
 
   if (!quote) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-lg text-red-600">Quote not found</div>
       </div>
     )
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Supplier Quote Details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <div className="font-semibold text-green-700">{quote.supplierName}</div>
-              <div className="text-sm text-gray-500">Quote #{quote.id}</div>
-              <div className="mt-1">Status: {getStatusBadge(quote.status)}</div>
-            </div>
-            <Button asChild variant="outline">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-4 mb-6">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              asChild
+              className="shadow-sm border-gray-200 hover:bg-gray-50"
+            >
               <Link href="/quotes/supplier">
-                <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                <ArrowLeft className="h-4 w-4" />
               </Link>
             </Button>
-          </div>
-
-          <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <div className="text-gray-600">Valid Until</div>
-              <div className="font-medium">{quote.validUntil ? format(new Date(quote.validUntil), "MMM dd, yyyy") : "-"}</div>
-            </div>
-            <div>
-              <div className="text-gray-600">Date Created</div>
-              <div className="font-medium">{quote.dateCreated ? format(new Date(quote.dateCreated), "MMM dd, yyyy") : "-"}</div>
-            </div>
-            <div>
-              <div className="text-gray-600">Total Amount</div>
-              <div className="font-medium">${Number(quote.totalAmount).toFixed(2)}</div>
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2">
+                <Hash className="h-6 w-6 text-primary" />
+                <h1 className="text-3xl font-bold text-gray-900">
+                  Supplier Quote #{quote.id.toString().padStart(4, "0")}
+                </h1>
+                {getStatusBadge(quote.status)}
+              </div>
+              <div className="flex items-center gap-2 text-gray-600">
+                <Truck className="h-4 w-4" />
+                <span className="font-medium">{quote.supplierName}</span>
+              </div>
             </div>
           </div>
+        </div>
 
-          <div className="mb-4">
-            <div className="text-gray-600 mb-1">Notes</div>
-            <div className="bg-gray-50 rounded p-2 min-h-[40px]">{quote.notes || <span className="text-gray-400">No notes</span>}</div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Quote Details */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Quote Information */}
+            <Card className="shadow-sm border-gray-200">
+              <CardHeader className="bg-primary/5 border-b border-gray-100">
+                <CardTitle className="text-primary flex items-center gap-2">
+                  <DollarSign className="h-5 w-5" />
+                  Quote Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Supplier</label>
+                    <p className="font-semibold text-gray-900">{quote.supplierName}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Status</label>
+                    <div className="mt-1">{getStatusBadge(quote.status)}</div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      Created
+                    </label>
+                    <p className="font-medium text-gray-900">
+                      {format(new Date(quote.dateCreated), "MMM dd, yyyy")}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      Valid Until
+                    </label>
+                    <p className="font-medium text-gray-900">
+                      {quote.validUntil ? format(new Date(quote.validUntil), "MMM dd, yyyy") : "No expiration"}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Total Amount</label>
+                  <p className="text-2xl font-bold text-primary">
+                    ${Number(quote.totalAmount).toFixed(2)}
+                  </p>
+                </div>
+
+                {quote.notes && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Notes</label>
+                    <p className="text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                      {quote.notes}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Actions */}
+            <Card className="shadow-sm border-gray-200">
+              <CardHeader className="bg-gray-50 border-b border-gray-100">
+                <CardTitle className="text-gray-700">Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-3">
+                <Button 
+                  asChild 
+                  variant="outline" 
+                  className="w-full border-gray-300 hover:bg-gray-50"
+                >
+                  <Link href={`/quotes/supplier/${quote.id}/edit`}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit Quote
+                  </Link>
+                </Button>
+
+                {quote.status === QuoteStatus.DRAFT && (
+                  <Button 
+                    onClick={handleSendToSupplier} 
+                    disabled={isUpdating}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
+                    <Send className="mr-2 h-4 w-4" />
+                    Send to Supplier
+                  </Button>
+                )}
+
+                {quote.status === QuoteStatus.PENDING && (
+                  <Button 
+                    onClick={handleApproveQuote} 
+                    disabled={isUpdating}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Approve Quote
+                  </Button>
+                )}
+
+                {quote.status === QuoteStatus.APPROVED && (
+                  <Button 
+                    onClick={handleConvertToInvoice} 
+                    disabled={isUpdating}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
+                    <FileText className="mr-2 h-4 w-4" />
+                    Convert to Invoice
+                  </Button>
+                )}
+
+                {quote.status === QuoteStatus.CONVERTED && quote.convertedInvoiceId && (
+                  <Button 
+                    asChild 
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
+                    <Link href={`/invoices/supplier/${quote.convertedInvoiceId}`}>
+                      <FileText className="mr-2 h-4 w-4" />
+                      View Invoice
+                    </Link>
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
           </div>
 
-          <div className="mb-6">
-            <div className="font-semibold mb-2">Items</div>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead>Reference</TableHead>
-                  <TableHead>Quantity</TableHead>
-                  <TableHead>Unit Price</TableHead>
-                  <TableHead>Total</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {quote.items.map(item => (
-                  <TableRow key={item.id}>
-                    <TableCell>{item.productName}</TableCell>
-                    <TableCell>{item.productReference}</TableCell>
-                    <TableCell>{item.quantity}</TableCell>
-                    <TableCell>${Number(item.unitPrice).toFixed(2)}</TableCell>
-                    <TableCell>${Number(item.totalPrice).toFixed(2)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          {/* Quote Items */}
+          <div className="lg:col-span-2">
+            <Card className="shadow-sm border-gray-200">
+              <CardHeader className="bg-primary/5 border-b border-gray-100">
+                <CardTitle className="text-primary flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Quote Items ({quote.items.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gray-50 border-b border-gray-200">
+                        <TableHead className="font-semibold text-gray-700">Product</TableHead>
+                        <TableHead className="font-semibold text-gray-700">Reference</TableHead>
+                        <TableHead className="text-right font-semibold text-gray-700">Quantity</TableHead>
+                        <TableHead className="text-right font-semibold text-gray-700">Unit Price</TableHead>
+                        <TableHead className="text-right font-semibold text-gray-700">Total</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {quote.items.map((item) => (
+                        <TableRow key={item.id} className="border-b border-gray-100 hover:bg-gray-50/50">
+                          <TableCell className="font-medium text-gray-900">{item.productName}</TableCell>
+                          <TableCell className="text-gray-600">{item.productReference}</TableCell>
+                          <TableCell className="text-right text-gray-900">{item.quantity}</TableCell>
+                          <TableCell className="text-right text-gray-900">
+                            ${Number(item.unitPrice).toFixed(2)}
+                          </TableCell>
+                          <TableCell className="text-right font-semibold text-gray-900">
+                            ${Number(item.totalPrice).toFixed(2)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {/* Total Row */}
+                      <TableRow className="bg-primary/5 border-t-2 border-primary/20">
+                        <TableCell colSpan={4} className="text-right font-bold text-gray-900">
+                          Total Amount:
+                        </TableCell>
+                        <TableCell className="text-right font-bold text-xl text-primary">
+                          ${Number(quote.totalAmount).toFixed(2)}
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-
-          <div className="flex space-x-2">
-            <Button asChild variant="outline">
-              <Link href={`/quotes/supplier/${quote.id}/edit`}>
-                <Edit className="mr-2 h-4 w-4" /> Edit
-              </Link>
-            </Button>
-            {quote.status === QuoteStatus.DRAFT && (
-              <Button onClick={handleSendToSupplier} disabled={isUpdating}>
-                <Send className="mr-2 h-4 w-4" /> Send to Supplier
-              </Button>
-            )}
-            {quote.status === QuoteStatus.PENDING && (
-              <Button onClick={handleApproveQuote} disabled={isUpdating}>
-                <CheckCircle className="mr-2 h-4 w-4" /> Approve
-              </Button>
-            )}
-            {(quote.status === QuoteStatus.APPROVED) && (
-              <Button onClick={handleConvertToInvoice} disabled={isUpdating}>
-                <FileText className="mr-2 h-4 w-4" /> Convert to Invoice
-              </Button>
-            )}
-            {quote.status === QuoteStatus.CONVERTED && quote.convertedInvoiceId && (
-              <Button asChild variant="outline">
-                <Link href={`/invoices/supplier/${quote.convertedInvoiceId}`}>
-                  <FileText className="mr-2 h-4 w-4" /> View Invoice
-                </Link>
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
-} 
+}

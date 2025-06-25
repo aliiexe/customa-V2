@@ -4,7 +4,7 @@ import { query } from "@/lib/db";
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
     const id = params.id;
-    const sql = `SELECT id, roleName, createdAt FROM roles WHERE id = ?`;
+    const sql = `SELECT id, roleName, description, createdAt FROM roles WHERE id = ?`;
     const role = await query(sql, [id]);
 
     if ((role as any[]).length === 0) {
