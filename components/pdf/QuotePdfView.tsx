@@ -77,7 +77,7 @@ const QuotePdfView: React.FC<QuotePdfViewProps> = ({ quote }) => {
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20 }}>
         <div style={{ width: "50%" }}>
-          <img src="/GWAtech-logo.jpg" width={100} height={60} alt="Logo" style={{ marginBottom: 12, width: 180, height: 60, objectFit: "contain" }}/>
+          <img src="/GWAtech-logo.jpg" width={100} height={150} alt="Logo" style={{ marginBottom: 12, width: 180, height: 60, objectFit: "contain" }}/>
           <div style={{ fontWeight: 600 }}>{sender.name}</div>
           <div>{sender.address}</div>
           <div>{sender.phone}</div>
