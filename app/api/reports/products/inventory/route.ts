@@ -84,7 +84,9 @@ export async function GET(request: Request) {
     
     const countParams = queryParams.slice(0, -2); // Remove limit and offset
     const countResult = await query(countQuery, countParams);
-    const total = Array.isArray(countResult) && countResult[0] ? countResult[0].total : 0;
+    const total = Array.isArray(countResult) && countResult[0] && typeof (countResult[0] as any).total !== "undefined"
+      ? Number((countResult[0] as any).total)
+      : 0;
 
     if (!Array.isArray(result)) {
       return NextResponse.json({ products: [], total: 0, page, limit });

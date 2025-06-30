@@ -1,89 +1,154 @@
-"use client"
+"use client";
 
-import { useState, useEffect, use } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { format } from "date-fns"
-import { ArrowLeft, Edit, Send, CheckCircle, FileText, Eye, Calendar, DollarSign, User, Hash, XCircle } from "lucide-react"
-import Link from "next/link"
-import { QuoteStatus } from "@/types/quote-models"
+import { useState, useEffect, use, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import {
+  ArrowLeft,
+  Edit,
+  Send,
+  CheckCircle,
+  FileText,
+  Eye,
+  Calendar,
+  DollarSign,
+  User,
+  Hash,
+  XCircle,
+  Download,
+} from "lucide-react";
+import Link from "next/link";
+import { QuoteStatus } from "@/types/quote-models";
+import { createPortal } from "react-dom";
+import { exportToPdf } from "@/lib/pdf-export";
+import QuotePdfView from "@/components/pdf/QuotePdfView";
 
 interface QuoteItem {
-  id: number
-  productId: number
-  productName: string
-  productReference: string
-  quantity: number
-  unitPrice: number
-  totalPrice: number
-  originalPrice: number
+  id: number;
+  productId: number;
+  productName: string;
+  productReference: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  originalPrice: number;
 }
 
 interface Quote {
-  id: number
-  clientId: number
-  clientName: string
-  totalAmount: number
-  dateCreated: string
-  validUntil: string
-  status: QuoteStatus
-  notes: string
-  convertedInvoiceId?: number
-  items: QuoteItem[]
+  id: number;
+  clientId: number;
+  clientName: string;
+  totalAmount: number;
+  dateCreated: string;
+  validUntil: string;
+  status: QuoteStatus;
+  notes: string;
+  convertedInvoiceId?: number;
+  items: QuoteItem[];
 }
 
-export default function QuoteDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: quoteId } = use(params)
-  const router = useRouter()
-  const [quote, setQuote] = useState<Quote | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isUpdating, setIsUpdating] = useState(false)
+export default function QuoteDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id: quoteId } = use(params);
+  const router = useRouter();
+  const [quote, setQuote] = useState<Quote | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [showPdfView, setShowPdfView] = useState(false);
+  const pdfDivRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchQuote = async () => {
       try {
-        const response = await fetch(`/api/quotes/client/${quoteId}`)
+        const response = await fetch(`/api/quotes/client/${quoteId}`);
         if (response.ok) {
-          const data = await response.json()
-          setQuote(data)
+          const data = await response.json();
+          setQuote(data);
         } else {
-          console.error("Failed to fetch quote")
+          console.error("Failed to fetch quote");
         }
       } catch (error) {
-        console.error("Error fetching quote:", error)
+        console.error("Error fetching quote:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
-    fetchQuote()
-  }, [quoteId])
+    };
+    fetchQuote();
+  }, [quoteId]);
 
   const getStatusBadge = (status: QuoteStatus) => {
-    const baseClasses = "px-3 py-1 rounded-full text-sm font-medium"
+    const baseClasses = "px-3 py-1 rounded-full text-sm font-medium";
     switch (status) {
       case QuoteStatus.DRAFT:
-        return <Badge className={`${baseClasses} bg-gray-100 text-gray-800 border border-gray-200`}>Draft</Badge>
+        return (
+          <Badge
+            className={`${baseClasses} bg-gray-100 text-gray-800 border border-gray-200`}
+          >
+            Draft
+          </Badge>
+        );
       case QuoteStatus.PENDING:
-        return <Badge className={`${baseClasses} bg-amber-100 text-amber-800 border border-amber-200`}>Pending</Badge>
+        return (
+          <Badge
+            className={`${baseClasses} bg-amber-100 text-amber-800 border border-amber-200`}
+          >
+            Pending
+          </Badge>
+        );
       case QuoteStatus.CONFIRMED:
-        return <Badge className={`${baseClasses} bg-blue-100 text-blue-800 border border-blue-200`}>Confirmed</Badge>
+        return (
+          <Badge
+            className={`${baseClasses} bg-blue-100 text-blue-800 border border-blue-200`}
+          >
+            Confirmed
+          </Badge>
+        );
       case QuoteStatus.APPROVED:
-        return <Badge className={`${baseClasses} bg-green-100 text-green-800 border border-green-200`}>Approved</Badge>
+        return (
+          <Badge
+            className={`${baseClasses} bg-green-100 text-green-800 border border-green-200`}
+          >
+            Approved
+          </Badge>
+        );
       case QuoteStatus.REJECTED:
-        return <Badge className={`${baseClasses} bg-red-100 text-red-800 border border-red-200`}>Rejected</Badge>
+        return (
+          <Badge
+            className={`${baseClasses} bg-red-100 text-red-800 border border-red-200`}
+          >
+            Rejected
+          </Badge>
+        );
       case QuoteStatus.CONVERTED:
-        return <Badge className={`${baseClasses} bg-purple-100 text-purple-800 border border-purple-200`}>Converted</Badge>
+        return (
+          <Badge
+            className={`${baseClasses} bg-purple-100 text-purple-800 border border-purple-200`}
+          >
+            Converted
+          </Badge>
+        );
       default:
-        return <Badge variant="outline">{status}</Badge>
+        return <Badge variant="outline">{status}</Badge>;
     }
-  }
+  };
 
   const handleSendToClient = async () => {
-    if (!quote) return
-    setIsUpdating(true)
+    if (!quote) return;
+    setIsUpdating(true);
     try {
       const response = await fetch(`/api/quotes/client/${quote.id}/status`, {
         method: "PATCH",
@@ -91,24 +156,24 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ status: QuoteStatus.PENDING }),
-      })
+      });
 
       if (response.ok) {
-        setQuote({ ...quote, status: QuoteStatus.PENDING })
+        setQuote({ ...quote, status: QuoteStatus.PENDING });
       } else {
-        alert("Failed to send quote to client")
+        alert("Failed to send quote to client");
       }
     } catch (error) {
-      console.error("Error sending quote:", error)
-      alert("Failed to send quote to client")
+      console.error("Error sending quote:", error);
+      alert("Failed to send quote to client");
     } finally {
-      setIsUpdating(false)
+      setIsUpdating(false);
     }
-  }
+  };
 
   const handleConfirmQuote = async () => {
-    if (!quote) return
-    setIsUpdating(true)
+    if (!quote) return;
+    setIsUpdating(true);
     try {
       const response = await fetch(`/api/quotes/client/${quote.id}/status`, {
         method: "PATCH",
@@ -116,76 +181,92 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ status: QuoteStatus.CONFIRMED }),
-      })
+      });
 
       if (response.ok) {
-        setQuote({ ...quote, status: QuoteStatus.CONFIRMED })
+        setQuote({ ...quote, status: QuoteStatus.CONFIRMED });
       } else {
-        alert("Failed to confirm quote")
+        alert("Failed to confirm quote");
       }
     } catch (error) {
-      console.error("Error confirming quote:", error)
-      alert("Failed to confirm quote")
+      console.error("Error confirming quote:", error);
+      alert("Failed to confirm quote");
     } finally {
-      setIsUpdating(false)
+      setIsUpdating(false);
     }
-  }
+  };
 
   const handleRejectQuote = async () => {
-    if (!quote) return
-    setIsUpdating(true)
+    if (!quote) return;
+    setIsUpdating(true);
     try {
       const response = await fetch(`/api/quotes/client/${quote.id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: QuoteStatus.REJECTED }),
-      })
+      });
       if (response.ok) {
-        setQuote({ ...quote, status: QuoteStatus.REJECTED })
+        setQuote({ ...quote, status: QuoteStatus.REJECTED });
       } else {
-        alert("Failed to reject quote")
+        alert("Failed to reject quote");
       }
     } catch (error) {
-      console.error("Error rejecting quote:", error)
-      alert("Failed to reject quote")
+      console.error("Error rejecting quote:", error);
+      alert("Failed to reject quote");
     } finally {
-      setIsUpdating(false)
+      setIsUpdating(false);
     }
-  }
+  };
 
   const handleConvertToInvoice = async () => {
-    if (!quote) return
-    setIsUpdating(true)
+    if (!quote) return;
+    setIsUpdating(true);
     try {
       const response = await fetch(`/api/quotes/client/${quote.id}/convert`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ deliveryDate: new Date().toISOString().split('T')[0] }),
-      })
+        body: JSON.stringify({
+          deliveryDate: new Date().toISOString().split("T")[0],
+        }),
+      });
 
       if (response.ok) {
-        const result = await response.json()
-        router.push(`/invoices/client/${result.invoiceId}`)
+        const result = await response.json();
+        router.push(`/invoices/client/${result.invoiceId}`);
       } else {
-        const errorData = await response.json().catch(() => ({ error: "Could not parse error response." }))
-        alert(`Failed to convert quote: ${errorData.error || response.statusText}`)
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: "Could not parse error response." }));
+        alert(
+          `Failed to convert quote: ${errorData.error || response.statusText}`
+        );
       }
     } catch (error) {
-      console.error("Error converting quote:", error)
-      alert(`An unexpected error occurred while converting the quote.`)
+      console.error("Error converting quote:", error);
+      alert(`An unexpected error occurred while converting the quote.`);
     } finally {
-      setIsUpdating(false)
+      setIsUpdating(false);
     }
-  }
+  };
+
+  const handleDownloadPdf = () => {
+    setShowPdfView(true);
+    setTimeout(async () => {
+      if (pdfDivRef.current && quote) {
+        await exportToPdf(pdfDivRef.current, `Quote-${quote.id}.pdf`);
+        setShowPdfView(false);
+      }
+    }, 100);
+  };
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
         <div className="text-xl text-slate-600">Loading quote...</div>
       </div>
-    )
+    );
   }
 
   if (!quote) {
@@ -193,7 +274,7 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
         <div className="text-xl text-red-600">Quote not found</div>
       </div>
-    )
+    );
   }
 
   return (
@@ -202,9 +283,9 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-6">
-            <Button 
-              variant="outline" 
-              size="icon" 
+            <Button
+              variant="outline"
+              size="icon"
               asChild
               className="shadow-sm border-slate-200 hover:bg-slate-50"
             >
@@ -242,15 +323,21 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
               <CardContent className="pt-6 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-slate-600">Client</label>
-                    <p className="font-semibold text-slate-900">{quote.clientName}</p>
+                    <label className="text-sm font-medium text-slate-600">
+                      Client
+                    </label>
+                    <p className="font-semibold text-slate-900">
+                      {quote.clientName}
+                    </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-slate-600">Status</label>
+                    <label className="text-sm font-medium text-slate-600">
+                      Status
+                    </label>
                     <div className="mt-1">{getStatusBadge(quote.status)}</div>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-slate-600 flex items-center gap-1">
@@ -273,7 +360,9 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-slate-600">Total Amount</label>
+                  <label className="text-sm font-medium text-slate-600">
+                    Total Amount
+                  </label>
                   <p className="text-2xl font-bold text-primary">
                     ${Number(quote.totalAmount).toFixed(2)}
                   </p>
@@ -281,7 +370,9 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
 
                 {quote.notes && (
                   <div>
-                    <label className="text-sm font-medium text-slate-600">Notes</label>
+                    <label className="text-sm font-medium text-slate-600">
+                      Notes
+                    </label>
                     <p className="text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-200">
                       {quote.notes}
                     </p>
@@ -298,9 +389,9 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
               <CardContent className="pt-6 space-y-3">
                 {quote.status === QuoteStatus.DRAFT && (
                   <>
-                    <Button 
-                      asChild 
-                      variant="outline" 
+                    <Button
+                      asChild
+                      variant="outline"
                       className="w-full border-slate-300 hover:bg-slate-50"
                     >
                       <Link href={`/quotes/client/${quote.id}/edit`}>
@@ -308,7 +399,7 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
                         Edit Quote
                       </Link>
                     </Button>
-                    <Button 
+                    <Button
                       onClick={handleSendToClient}
                       disabled={isUpdating}
                       className="w-full bg-green-600 hover:bg-green-700 text-white"
@@ -341,8 +432,9 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
                   </div>
                 )}
 
-                {(quote.status === QuoteStatus.CONFIRMED || quote.status === QuoteStatus.APPROVED) && (
-                  <Button 
+                {(quote.status === QuoteStatus.CONFIRMED ||
+                  quote.status === QuoteStatus.APPROVED) && (
+                  <Button
                     onClick={handleConvertToInvoice}
                     disabled={isUpdating}
                     className="w-full bg-purple-600 hover:bg-purple-700 text-white"
@@ -352,14 +444,29 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
                   </Button>
                 )}
 
-                {quote.status === QuoteStatus.CONVERTED && quote.convertedInvoiceId && (
-                  <Button asChild className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                    <Link href={`/invoices/client/${quote.convertedInvoiceId}`}>
-                      <Eye className="mr-2 h-4 w-4" />
-                      View Invoice
-                    </Link>
-                  </Button>
-                )}
+                {quote.status === QuoteStatus.CONVERTED &&
+                  quote.convertedInvoiceId && (
+                    <Button
+                      asChild
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      <Link
+                        href={`/invoices/client/${quote.convertedInvoiceId}`}
+                      >
+                        <Eye className="mr-2 h-4 w-4" />
+                        View Invoice
+                      </Link>
+                    </Button>
+                  )}
+
+                <Button
+                  variant="outline"
+                  onClick={handleDownloadPdf}
+                  className="w-full flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Download as PDF
+                </Button>
               </CardContent>
             </Card>
           </div>
@@ -378,19 +485,38 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-slate-50 border-b border-slate-200">
-                        <TableHead className="font-semibold text-slate-700">Product</TableHead>
-                        <TableHead className="font-semibold text-slate-700">Reference</TableHead>
-                        <TableHead className="text-right font-semibold text-slate-700">Quantity</TableHead>
-                        <TableHead className="text-right font-semibold text-slate-700">Unit Price</TableHead>
-                        <TableHead className="text-right font-semibold text-slate-700">Total</TableHead>
+                        <TableHead className="font-semibold text-slate-700">
+                          Product
+                        </TableHead>
+                        <TableHead className="font-semibold text-slate-700">
+                          Reference
+                        </TableHead>
+                        <TableHead className="text-right font-semibold text-slate-700">
+                          Quantity
+                        </TableHead>
+                        <TableHead className="text-right font-semibold text-slate-700">
+                          Unit Price
+                        </TableHead>
+                        <TableHead className="text-right font-semibold text-slate-700">
+                          Total
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {quote.items.map((item) => (
-                        <TableRow key={item.id} className="border-b border-slate-100 hover:bg-slate-50/50">
-                          <TableCell className="font-medium text-slate-900">{item.productName}</TableCell>
-                          <TableCell className="text-slate-600">{item.productReference}</TableCell>
-                          <TableCell className="text-right text-slate-900">{item.quantity}</TableCell>
+                        <TableRow
+                          key={item.id}
+                          className="border-b border-slate-100 hover:bg-slate-50/50"
+                        >
+                          <TableCell className="font-medium text-slate-900">
+                            {item.productName}
+                          </TableCell>
+                          <TableCell className="text-slate-600">
+                            {item.productReference}
+                          </TableCell>
+                          <TableCell className="text-right text-slate-900">
+                            {item.quantity}
+                          </TableCell>
                           <TableCell className="text-right text-slate-900">
                             ${Number(item.unitPrice).toFixed(2)}
                           </TableCell>
@@ -401,7 +527,10 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
                       ))}
                       {/* Total Row */}
                       <TableRow className="bg-primary/5 border-t-2 border-primary/20">
-                        <TableCell colSpan={4} className="text-right font-bold text-slate-900">
+                        <TableCell
+                          colSpan={4}
+                          className="text-right font-bold text-slate-900"
+                        >
                           Total Amount:
                         </TableCell>
                         <TableCell className="text-right font-bold text-xl text-primary">
@@ -416,6 +545,22 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
       </div>
+      {/* Hidden PDF for export */}
+      {showPdfView &&
+        createPortal(
+          <div
+            ref={pdfDivRef}
+            style={{
+              position: "absolute",
+              left: "-9999px",
+              top: 0,
+              zIndex: -1,
+            }}
+          >
+            <QuotePdfView quote={{ ...quote, date: quote.dateCreated }} />
+          </div>,
+          document.body
+        )}
     </div>
-  )
+  );
 }

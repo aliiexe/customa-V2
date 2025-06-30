@@ -451,12 +451,14 @@ export default function CategoriesTable() {
                   </div>
                 )}
               {categoryToDelete &&
-                categories.find((c) => c.id === categoryToDelete)
-                  ?.productsCount > 0 && (
-                  <div className="mt-2 text-red-600">
-                    ⚠ This category contains products and cannot be deleted.
-                  </div>
-                )}
+                (() => {
+                  const cat = categories.find((c) => c.id === categoryToDelete);
+                  return cat && cat.productsCount > 0 ? (
+                    <div className="mt-2 text-red-600">
+                      ⚠ This category contains products and cannot be deleted.
+                    </div>
+                  ) : null;
+                })()}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

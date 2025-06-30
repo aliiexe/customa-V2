@@ -18,7 +18,7 @@ export async function GET(request: Request) {
       ORDER BY month
     `;
     
-    const monthlySalesResult = await query(monthlySalesQuery, [year]);
+    const monthlySalesResult = await query(monthlySalesQuery, [year]) as Array<{ month: number, revenue: number, orders: number }>;
     
     // Format data for all months
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -32,9 +32,9 @@ export async function GET(request: Request) {
       // Calculate growth compared to previous month
       let growth = 0;
       if (monthData && index > 0) {
-        const prevMonthData = monthlySalesResult.find((item: any) => item.month === index);
-        if (prevMonthData) {
-          growth = ((monthData.revenue - prevMonthData.revenue) / prevMonthData.revenue) * 100;
+        const prevMonthData = monthlySalesResult.find((item) => item.month === index);
+        if (prevMonthData && prevMonthData.revenue !== 0) {
+          growth = ((Number(monthData.revenue) - Number(prevMonthData.revenue)) / Number(prevMonthData.revenue)) * 100;
         }
       }
       

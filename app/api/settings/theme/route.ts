@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const theme = cookieStore.get("app-theme")?.value || "green";
     return NextResponse.json({ theme });
   } catch (error) {

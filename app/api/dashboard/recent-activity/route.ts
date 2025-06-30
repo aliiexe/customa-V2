@@ -6,7 +6,16 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get("limit") || "10");
 
-    const activities = [];
+    const activities: Array<{
+      id: string;
+      type: string;
+      title: string;
+      description: string;
+      timestamp: string | Date;
+      href: string;
+      value?: number;
+      status?: string;
+    }> = [];
 
     // Recent products
     const recentProducts = await query(`
@@ -24,13 +33,20 @@ export async function GET(request: Request) {
 
     if (Array.isArray(recentProducts)) {
       recentProducts.forEach(product => {
+        const p = product as {
+          id: string;
+          name: string;
+          reference: string;
+          createdAt: string | Date;
+          categoryName?: string;
+        };
         activities.push({
-          id: `product-${product.id}`,
+          id: `product-${p.id}`,
           type: 'product',
-          title: `New product: ${product.name}`,
-          description: `Product ${product.reference} added to ${product.categoryName || 'Uncategorized'}`,
-          timestamp: product.createdAt,
-          href: `/products/${product.id}`
+          title: `New product: ${p.name}`,
+          description: `Product ${p.reference} added to ${p.categoryName || 'Uncategorized'}`,
+          timestamp: p.createdAt,
+          href: `/products/${p.id}`
         });
       });
     }
@@ -50,7 +66,14 @@ export async function GET(request: Request) {
     `, []);
 
     if (Array.isArray(recentInvoices)) {
-      recentInvoices.forEach(invoice => {
+      recentInvoices.forEach(inv => {
+        const invoice = inv as {
+          id: string;
+          totalAmount: number;
+          dateCreated: string | Date;
+          payment_status?: string;
+          clientName?: string;
+        };
         activities.push({
           id: `invoice-${invoice.id}`,
           type: 'invoice',
@@ -77,7 +100,13 @@ export async function GET(request: Request) {
     `, []);
 
     if (Array.isArray(recentClients)) {
-      recentClients.forEach(client => {
+      recentClients.forEach(c => {
+        const client = c as {
+          id: string;
+          name: string;
+          email: string;
+          createdAt: string | Date;
+        };
         activities.push({
           id: `client-${client.id}`,
           type: 'client',

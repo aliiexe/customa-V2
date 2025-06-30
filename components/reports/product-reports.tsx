@@ -27,8 +27,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ProductData {
   totalProducts: number;
+  inStockCount: number;
   lowStockCount: number;
   outOfStockCount: number;
+  totalInventoryValue: number;
+  totalCategories: number;
   topCategoriesDistribution?: {
     name: string;
     count: number;
@@ -266,7 +269,6 @@ export default function ProductReports() {
                         100
                       }
                       className="h-1.5 bg-amber-100"
-                      indicatorClassName="bg-amber-500"
                     />
                   </div>
                 )}
@@ -298,7 +300,6 @@ export default function ProductReports() {
                         100
                       }
                       className="h-1.5 bg-red-100"
-                      indicatorClassName="bg-red-500"
                     />
                   </div>
                 )}

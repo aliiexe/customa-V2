@@ -252,7 +252,7 @@ export default function ProductFilters({ onFiltersChange }: ProductFiltersProps)
                 <SelectItem value="high">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="h-4 w-4 text-green-500" />
-                    High Stock (>50)
+                    High Stock ({'>'}50)
                   </div>
                 </SelectItem>
               </SelectContent>

@@ -28,6 +28,11 @@ interface SupplierData {
   totalExpenses: number;
   reliabilityScore?: number;
   averageDeliveryTime?: number;
+  activeSuppliers: number;
+  totalProducts?: number;
+  pendingInvoices?: number;
+  pendingAmount?: number;
+  supplierEfficiency: number;
 }
 
 interface SupplierReportsProps {
@@ -180,7 +185,7 @@ export default function SupplierReports({ dateRange }: SupplierReportsProps) {
 
       const csvContent = csvData.map((row) =>
         row.map((field) => `"${field}"`).join(",")
-      );
+      ).join("\n");
 
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const link = document.createElement("a");

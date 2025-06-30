@@ -7,9 +7,11 @@ export async function GET() {
     const clientsExistQuery = "SELECT COUNT(*) as count FROM clients";
     const clientsExistResult = await query(clientsExistQuery);
     
-    if (!Array.isArray(clientsExistResult) || 
-        clientsExistResult.length === 0 || 
-        clientsExistResult[0].count === 0) {
+    if (
+      !Array.isArray(clientsExistResult) ||
+      clientsExistResult.length === 0 ||
+      (clientsExistResult[0] as { count: number }).count === 0
+    ) {
       console.log("No clients found");
       return NextResponse.json([]);
     }
@@ -22,7 +24,7 @@ export async function GET() {
     `;
     const totalRevenueResult = await query(totalRevenueQuery);
     const totalRevenue = Array.isArray(totalRevenueResult) && totalRevenueResult.length > 0 
-      ? Number(totalRevenueResult[0].totalRevenue) 
+      ? Number((totalRevenueResult[0] as { totalRevenue: number }).totalRevenue) 
       : 0;
     
     console.log("Total revenue:", totalRevenue);
@@ -40,10 +42,10 @@ export async function GET() {
         LIMIT 5
       `;
       
-      const topClientsResult = await query(topClientsQuery);
+      const topClientsResult = await query(topClientsQuery) as Array<{ id: number; name: string }>;
       
       if (Array.isArray(topClientsResult)) {
-        const zeroContributions = topClientsResult.map(client => ({
+        const zeroContributions = topClientsResult.map((client: { id: number; name: string }) => ({
           id: client.id,
           name: client.name,
           revenue: 0,
@@ -81,7 +83,7 @@ export async function GET() {
     }
     
     // Format the data
-    const formattedData = contributionsResult.map(client => ({
+    const formattedData = (contributionsResult as Array<{ id: number; name: string; revenue: number }>).map(client => ({
       id: client.id,
       name: client.name,
       revenue: Number(client.revenue || 0),

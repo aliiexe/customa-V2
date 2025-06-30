@@ -23,12 +23,20 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { exportToPdf } from "@/lib/pdf-export";
 
+// Fix: DateRange type should match what DatePickerWithRange expects
+type DateRange = {
+  from: Date | undefined;
+  to: Date | undefined;
+};
+
 export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState("sales");
   const [isExporting, setIsExporting] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
-  const [dateRange, setDateRange] = useState({
+
+  // Fix: Use Date | undefined for from/to to match DatePickerWithRange
+  const [dateRange, setDateRange] = useState<DateRange>({
     from: new Date(new Date().getFullYear(), 0, 1),
     to: new Date(),
   });
@@ -78,12 +86,14 @@ export default function ReportsPage() {
       const reportElement = document.getElementById("report-content");
       if (!reportElement) throw new Error("Report content not found");
 
+      // Fix: Use fallback for undefined dates
+      const from = dateRange.from
+        ? format(dateRange.from, "MMM dd, yyyy")
+        : "N/A";
+      const to = dateRange.to ? format(dateRange.to, "MMM dd, yyyy") : "N/A";
       const filename = `${
         reportTitles[activeTab as keyof typeof reportTitles]
-      } - ${format(dateRange.from, "MMM dd, yyyy")} to ${format(
-        dateRange.to,
-        "MMM dd, yyyy"
-      )}.pdf`;
+      } - ${from} to ${to}.pdf`;
       await exportToPdf(reportElement, filename);
 
       toast({
@@ -151,17 +161,23 @@ export default function ReportsPage() {
   };
 
   const renderTabContent = () => {
+    // Provide fallback dates if from/to are undefined
+    const safeDateRange = {
+      from: dateRange.from ?? new Date(new Date().getFullYear(), 0, 1),
+      to: dateRange.to ?? new Date(),
+    };
+
     switch (activeTab) {
       case "sales":
-        return <SalesReports dateRange={dateRange} />;
+        return <SalesReports dateRange={safeDateRange} />;
       case "products":
         return <ProductReports />;
       case "clients":
-        return <ClientReports dateRange={dateRange} />;
+        return <ClientReports dateRange={safeDateRange} />;
       case "suppliers":
-        return <SupplierReports dateRange={dateRange} />;
+        return <SupplierReports dateRange={safeDateRange} />;
       default:
-        return <SalesReports dateRange={dateRange} />;
+        return <SalesReports dateRange={safeDateRange} />;
     }
   };
 
@@ -220,6 +236,7 @@ export default function ReportsPage() {
             <Calendar className="h-5 w-5" />
             <span>Report Period:</span>
           </div>
+          {/* Fix: setDateRange is compatible with DatePickerWithRange's onUpdate */}
           <DatePickerWithRange dateRange={dateRange} onUpdate={setDateRange} />
         </div>
       </div>
@@ -264,8 +281,12 @@ export default function ReportsPage() {
                   {reportTitles[activeTab as keyof typeof reportTitles]}
                 </h2>
                 <p className="text-gray-600 text-sm mt-1">
-                  Period: {format(dateRange.from, "MMM dd, yyyy")} -{" "}
-                  {format(dateRange.to, "MMM dd, yyyy")}
+                  Period:{" "}
+                  {dateRange.from
+                    ? format(dateRange.from, "MMM dd, yyyy")
+                    : "N/A"}{" "}
+                  -{" "}
+                  {dateRange.to ? format(dateRange.to, "MMM dd, yyyy") : "N/A"}
                 </p>
               </div>
             </div>

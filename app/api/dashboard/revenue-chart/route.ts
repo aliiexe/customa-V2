@@ -21,7 +21,7 @@ export async function GET() {
         month
     `
 
-    const revenueResult = await query(revenueQuery, [currentYear])
+    const revenueResult = await query(revenueQuery, [currentYear]) as Array<{ month: number, revenue: number }>
 
     // Get expenses by month (from supplier invoices)
     const expensesQuery = `
@@ -38,7 +38,7 @@ export async function GET() {
         month
     `
 
-    const expensesResult = await query(expensesQuery, [currentYear])
+    const expensesResult = await query(expensesQuery, [currentYear]) as Array<{ month: number, expenses: number }>
 
     // Create a complete dataset with all months
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]

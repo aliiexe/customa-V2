@@ -10,7 +10,7 @@ export async function GET() {
       SELECT COUNT(*) as count
       FROM products 
       WHERE stockQuantity <= 10
-    `, []);
+    `, []) as { count: number }[];
     
     const lowStockCount = Array.isArray(lowStockResult) ? lowStockResult[0]?.count || 0 : 0;
     
@@ -37,9 +37,9 @@ export async function GET() {
       FROM client_invoices 
       WHERE payment_status = 'UNPAID' 
       AND DATEDIFF(CURDATE(), dateCreated) > 30
-    `, []);
+    `, []) as { count: number, value: number }[];
     
-    const overdueData = Array.isArray(overdueResult) ? overdueResult[0] : {};
+    const overdueData = Array.isArray(overdueResult) ? overdueResult[0] : { count: 0, value: 0 };
     
     if (overdueData.count > 0) {
       alerts.push({
@@ -62,7 +62,7 @@ export async function GET() {
       SELECT COUNT(*) as count
       FROM products 
       WHERE stockQuantity = 0
-    `, []);
+    `, []) as { count: number }[];
     
     const outOfStockCount = Array.isArray(outOfStockResult) ? outOfStockResult[0]?.count || 0 : 0;
     
@@ -88,9 +88,9 @@ export async function GET() {
         COALESCE(SUM(totalAmount), 0) as value
       FROM supplier_invoices 
       WHERE payment_status = 'UNPAID'
-    `, []);
+    `, []) as { count: number, value: number }[];
     
-    const unpaidSupplierData = Array.isArray(unpaidSupplierResult) ? unpaidSupplierResult[0] : {};
+    const unpaidSupplierData = Array.isArray(unpaidSupplierResult) ? unpaidSupplierResult[0] : { count: 0, value: 0 };
     
     if (unpaidSupplierData.count > 0) {
       alerts.push({

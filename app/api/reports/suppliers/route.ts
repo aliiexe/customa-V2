@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     const suppliersCountQuery = `SELECT COUNT(*) as totalSuppliers FROM suppliers`;
     const suppliersResult = await query(suppliersCountQuery);
     const totalSuppliers = Array.isArray(suppliersResult) && suppliersResult[0] 
-      ? suppliersResult[0].totalSuppliers || 0 
+      ? (suppliersResult[0] as { totalSuppliers: number }).totalSuppliers || 0 
       : 0;
 
     // Get active suppliers (suppliers who have products)
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
     `;
     const activeResult = await query(activeSuppliersQuery);
     const activeSuppliers = Array.isArray(activeResult) && activeResult[0] 
-      ? activeResult[0].activeSuppliers || 0 
+      ? (activeResult[0] as { activeSuppliers: number }).activeSuppliers || 0 
       : 0;
 
     // Get total products from suppliers
@@ -33,7 +33,7 @@ export async function GET(request: Request) {
     `;
     const productsResult = await query(productsQuery);
     const totalProducts = Array.isArray(productsResult) && productsResult[0] 
-      ? productsResult[0].totalProducts || 0 
+      ? (productsResult[0] as { totalProducts: number }).totalProducts || 0 
       : 0;
 
     // Get supplier invoices if the table exists, otherwise use 0
@@ -50,7 +50,7 @@ export async function GET(request: Request) {
       `;
       const expensesResult = await query(expensesQuery, [startDate, endDate]);
       totalExpenses = Array.isArray(expensesResult) && expensesResult[0] 
-        ? expensesResult[0].totalExpenses || 0 
+        ? (expensesResult[0] as { totalExpenses: number }).totalExpenses || 0 
         : 0;
 
       const pendingQuery = `
@@ -65,8 +65,8 @@ export async function GET(request: Request) {
         ? pendingResult[0] 
         : { pendingInvoices: 0, pendingAmount: 0 };
       
-      pendingInvoices = pending.pendingInvoices;
-      pendingAmount = pending.pendingAmount;
+      pendingInvoices = (pending as { pendingInvoices: number; pendingAmount: number }).pendingInvoices;
+      pendingAmount = (pending as { pendingInvoices: number; pendingAmount: number }).pendingAmount;
     } catch (error) {
       // Table might not exist, use default values
       console.log("Supplier invoices table not found, using default values");

@@ -23,7 +23,7 @@ export async function GET(request: Request) {
     `;
     
     console.log('Revenue query:', revenueQuery); // Debug log
-    const revenueResult = await query(revenueQuery, [startDate, endDate]);
+    const revenueResult = await query(revenueQuery, [startDate, endDate]) as { totalRevenue: number | null }[];
     console.log('Revenue result:', revenueResult); // Debug log
     
     const totalRevenue = Array.isArray(revenueResult) && revenueResult[0] 
@@ -37,7 +37,7 @@ export async function GET(request: Request) {
       WHERE payment_status = 'PAID'
       AND dateCreated BETWEEN ? AND ?
     `;
-    const ordersResult = await query(ordersQuery, [startDate, endDate]);
+    const ordersResult = await query(ordersQuery, [startDate, endDate]) as { totalOrders: number | null }[];
     const totalOrders = Array.isArray(ordersResult) && ordersResult[0] 
       ? ordersResult[0].totalOrders || 0 
       : 0;
@@ -78,7 +78,7 @@ export async function GET(request: Request) {
     console.error("Error fetching sales report data:", error);
     return NextResponse.json({ 
       error: "Failed to fetch sales data",
-      details: error.message 
+      details: error instanceof Error ? error.message : String(error)
     }, { status: 500 });
   }
 }

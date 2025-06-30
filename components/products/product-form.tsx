@@ -70,14 +70,12 @@ const formSchema = z.object({
     .number()
     .int()
     .min(0, "Provisional stock cannot be negative")
-    .max(999999, "Provisional stock is too large")
-    .default(0),
+    .max(999999, "Provisional stock is too large"),
   reorderLevel: z.coerce
     .number()
     .int()
     .min(0, "Reorder level cannot be negative")
-    .max(999999, "Reorder level is too large")
-    .default(5),
+    .max(999999, "Reorder level is too large"),
   description: z.string().max(1000, "Description must be less than 1000 characters").optional(),
   supplierId: z.string().min(1, "Please select a supplier"),
   categoryId: z.string().min(1, "Please select a category"),

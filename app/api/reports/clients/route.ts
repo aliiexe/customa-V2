@@ -9,8 +9,8 @@ export async function GET(request: Request) {
 
     // Get total clients
     const totalClientsResult = await query(`SELECT COUNT(*) as totalClients FROM clients`);
-    const totalClients = Array.isArray(totalClientsResult) && totalClientsResult[0] 
-      ? Number(totalClientsResult[0].totalClients) || 0 
+    const totalClients = Array.isArray(totalClientsResult) && (totalClientsResult as { totalClients: number }[])[0] 
+      ? Number((totalClientsResult as { totalClients: number }[])[0].totalClients) || 0 
       : 0;
 
     // Get active clients (clients with paid orders in last 3 months)
@@ -21,8 +21,9 @@ export async function GET(request: Request) {
       WHERE ci.dateCreated >= DATE_SUB(NOW(), INTERVAL 3 MONTH)
       AND ci.payment_status = 'PAID'
     `);
-    const activeClients = Array.isArray(activeClientsResult) && activeClientsResult[0] 
-      ? Number(activeClientsResult[0].activeClients) || 0 
+    const activeClientsArray = activeClientsResult as { activeClients: number }[];
+    const activeClients = Array.isArray(activeClientsArray) && activeClientsArray[0] 
+      ? Number(activeClientsArray[0].activeClients) || 0 
       : 0;
 
     // Get total revenue from clients in date range
@@ -32,8 +33,9 @@ export async function GET(request: Request) {
       WHERE payment_status = 'PAID'
       AND dateCreated BETWEEN ? AND ?
     `, [startDate, endDate]);
-    const totalRevenue = Array.isArray(revenueResult) && revenueResult[0] 
-      ? Number(revenueResult[0].totalRevenue) || 0 
+    const totalRevenueArray = revenueResult as { totalRevenue: number }[];
+    const totalRevenue = Array.isArray(totalRevenueArray) && totalRevenueArray[0] 
+      ? Number(totalRevenueArray[0].totalRevenue) || 0 
       : 0;
 
     // Get new clients this month
@@ -42,8 +44,9 @@ export async function GET(request: Request) {
       FROM clients
       WHERE createdAt >= DATE_FORMAT(NOW(), '%Y-%m-01')
     `);
-    const newClientsThisMonth = Array.isArray(newClientsResult) && newClientsResult[0] 
-      ? Number(newClientsResult[0].newClients) || 0 
+    const newClientsArray = newClientsResult as { newClients: number }[];
+    const newClientsThisMonth = Array.isArray(newClientsArray) && newClientsArray[0] 
+      ? Number(newClientsArray[0].newClients) || 0 
       : 0;
 
     // Calculate metrics

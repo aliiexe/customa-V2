@@ -1,97 +1,109 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useCallback } from "react"
-import { Button } from "@/components/ui/button"
-import { PlusCircle } from "lucide-react"
-import ClientQuotesTable from "@/components/quotes/client-quotes-table"
-import ClientQuoteFilters from "@/components/quotes/client-quote-filters"
-import Link from "next/link"
+import { useState, useEffect, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { PlusCircle } from "lucide-react";
+import ClientQuotesTable from "@/components/quotes/client-quotes-table";
+import ClientQuoteFilters from "@/components/quotes/client-quote-filters";
+import Link from "next/link";
+import { QuoteStatus } from "@/types/quote-models"; // <-- Import the enum/type used in the table
 
+// Fix: Use the same Quote type as in the table component, with status: QuoteStatus
 interface Quote {
-  id: number
-  clientName: string
-  totalAmount: number
-  dateCreated: string
-  validUntil: string
-  status: string
-  itemsCount: number
-  convertedInvoiceId?: number
+  id: number;
+  clientName: string;
+  totalAmount: number;
+  dateCreated: string;
+  validUntil: string;
+  status: QuoteStatus; // <-- Fix: use QuoteStatus, not string
+  itemsCount: number;
+  convertedInvoiceId?: number;
 }
 
 export default function ClientQuotesPage() {
-  const [quotes, setQuotes] = useState<Quote[]>([])
-  const [filteredQuotes, setFilteredQuotes] = useState<Quote[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [filteredQuotes, setFilteredQuotes] = useState<Quote[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Fetch all quotes on initial load
   useEffect(() => {
-    fetchQuotes()
-  }, [])
+    fetchQuotes();
+  }, []);
 
   const fetchQuotes = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const response = await fetch("/api/quotes/client")
+      const response = await fetch("/api/quotes/client");
       if (response.ok) {
-        const data = await response.json()
-        setQuotes(data)
-        setFilteredQuotes(data) // Initially show all quotes
+        let data = await response.json();
+        // Fix: Map status to QuoteStatus if needed
+        data = data.map((q: any) => ({
+          ...q,
+          status: q.status as QuoteStatus,
+        }));
+        setQuotes(data);
+        setFilteredQuotes(data); // Initially show all quotes
       } else {
-        console.error("Failed to fetch quotes")
-        setQuotes([])
-        setFilteredQuotes([])
+        console.error("Failed to fetch quotes");
+        setQuotes([]);
+        setFilteredQuotes([]);
       }
     } catch (error) {
-      console.error("Error fetching quotes:", error)
-      setQuotes([])
-      setFilteredQuotes([])
+      console.error("Error fetching quotes:", error);
+      setQuotes([]);
+      setFilteredQuotes([]);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // Use useCallback to memoize the filter handler and prevent infinite loops
   const handleFilterChange = useCallback(async (filters: any) => {
-    setIsLoading(true)
-    
+    setIsLoading(true);
     try {
       // Build query parameters - only add non-empty values
-      const params = new URLSearchParams()
-      
+      const params = new URLSearchParams();
       if (filters.searchTerm && filters.searchTerm.trim()) {
-        params.append("search", filters.searchTerm.trim())
+        params.append("search", filters.searchTerm.trim());
       }
       if (filters.selectedStatus && filters.selectedStatus !== "all") {
-        params.append("status", filters.selectedStatus)
+        params.append("status", filters.selectedStatus);
       }
       if (filters.selectedClient && filters.selectedClient !== "all") {
-        params.append("clientId", filters.selectedClient)
+        params.append("clientId", filters.selectedClient);
       }
       if (filters.dateFrom) {
-        params.append("dateFrom", filters.dateFrom)
+        params.append("dateFrom", filters.dateFrom);
       }
       if (filters.dateTo) {
-        params.append("dateTo", filters.dateTo)
+        params.append("dateTo", filters.dateTo);
       }
 
-      const queryString = params.toString()
-      const url = queryString ? `/api/quotes/client?${queryString}` : "/api/quotes/client"
-      
-      const response = await fetch(url)
+      const queryString = params.toString();
+      const url = queryString
+        ? `/api/quotes/client?${queryString}`
+        : "/api/quotes/client";
+
+      const response = await fetch(url);
       if (response.ok) {
-        const data = await response.json()
-        setFilteredQuotes(data)
+        let data = await response.json();
+        // Fix: Map status to QuoteStatus if needed
+        data = data.map((q: any) => ({
+          ...q,
+          status: q.status as QuoteStatus,
+        }));
+        setFilteredQuotes(data);
       } else {
-        console.error("Failed to fetch filtered quotes")
-        setFilteredQuotes([])
+        console.error("Failed to fetch filtered quotes");
+        setFilteredQuotes([]);
       }
     } catch (error) {
-      console.error("Error fetching filtered quotes:", error)
-      setFilteredQuotes([])
+      console.error("Error fetching filtered quotes:", error);
+      setFilteredQuotes([]);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, []) // Empty dependency array since we don't need any external dependencies
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -134,5 +146,5 @@ export default function ClientQuotesPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

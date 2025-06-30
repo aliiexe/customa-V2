@@ -75,15 +75,15 @@ export const exportToPdf = async (element: HTMLElement, filename: string) => {
     for (let i = 1; i <= pageCount; i++) {
       pdf.setPage(i);
       
-      // Add title
-      pdf.setFontSize(16);
-      pdf.setTextColor(46, 125, 50); // Green color
-      pdf.text(filename.replace('.pdf', ''), 10, 25);
+      // // Add title
+      // pdf.setFontSize(16);
+      // pdf.setTextColor(46, 125, 50); // Green color
+      // pdf.text(filename.replace('.pdf', ''), 10, 25);
       
-      // Add date
-      pdf.setFontSize(10);
-      pdf.setTextColor(100, 100, 100);
-      pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 10, 35);
+      // // Add date
+      // pdf.setFontSize(10);
+      // pdf.setTextColor(100, 100, 100);
+      // pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 10, 35);
       
       // Add page number
       pdf.text(`Page ${i} of ${pageCount}`, pdfWidth - 30, pdfHeight - 10);

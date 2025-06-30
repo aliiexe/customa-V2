@@ -6,14 +6,16 @@ import { PlusCircle } from "lucide-react";
 import SupplierQuotesTable from "@/components/quotes/supplier-quotes-table";
 import SupplierQuoteFilters from "@/components/quotes/supplier-quote-filters";
 import Link from "next/link";
+import { QuoteStatus } from "@/types/quote-models"; // <-- Import the enum/type used in the table component
 
+// Fix: Use the same Quote type as in the table component, with status: QuoteStatus
 interface Quote {
   id: number;
   supplierName: string;
   totalAmount: number;
   dateCreated: string;
   validUntil: string;
-  status: string;
+  status: QuoteStatus; // <-- Fix: use QuoteStatus, not string
   itemsCount: number;
   convertedInvoiceId?: number;
 }
@@ -33,7 +35,12 @@ export default function SupplierQuotesPage() {
     try {
       const response = await fetch("/api/quotes/supplier");
       if (response.ok) {
-        const data = await response.json();
+        let data = await response.json();
+        // Fix: Map status to QuoteStatus if needed
+        data = data.map((q: any) => ({
+          ...q,
+          status: q.status as QuoteStatus,
+        }));
         setQuotes(data);
         setFilteredQuotes(data); // Initially show all quotes
       } else {
@@ -84,7 +91,12 @@ export default function SupplierQuotesPage() {
 
         const response = await fetch(url);
         if (response.ok) {
-          const data = await response.json();
+          let data = await response.json();
+          // Fix: Map status to QuoteStatus if needed
+          data = data.map((q: any) => ({
+            ...q,
+            status: q.status as QuoteStatus,
+          }));
           setFilteredQuotes(data);
           console.log("Filtered quotes:", data);
         } else {
