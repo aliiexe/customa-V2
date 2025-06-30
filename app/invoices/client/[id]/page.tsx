@@ -60,21 +60,24 @@ export default function ClientInvoiceDetailPage() {
   const [showPdfView, setShowPdfView] = useState(false);
   const pdfDivRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const fetchInvoice = async () => {
-      try {
-        const response = await fetch(`/api/invoices/client/${invoiceId}`);
-        if (response.ok) {
-          const data = await response.json();
-          setInvoice(data);
-        }
-      } catch (error) {
-        console.error("Error fetching invoice:", error);
-      } finally {
-        setIsLoading(false);
+  // Move fetchInvoice outside useEffect so it can be reused
+  const fetchInvoice = async () => {
+    try {
+      const response = await fetch(`/api/invoices/client/${invoiceId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setInvoice(data);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching invoice:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     if (invoiceId) fetchInvoice();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [invoiceId]);
 
   const getPaymentStatusBadge = (status: "PAID" | "UNPAID") => {
@@ -138,8 +141,8 @@ export default function ClientInvoiceDetailPage() {
         body: JSON.stringify(newStatus),
       });
       if (response.ok) {
-        const updatedInvoice = await response.json();
-        setInvoice(updatedInvoice);
+        // Instead of using the returned object, re-fetch the invoice
+        await fetchInvoice();
       }
     } finally {
       setIsUpdating(false);
