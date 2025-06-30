@@ -57,12 +57,16 @@ export default function SupplierInvoicePage() {
 
   const handleStatusUpdate = async (newStatus: string) => {
     try {
+      const updateData = newStatus === "PAID" 
+        ? { payment_status: newStatus } 
+        : { delivery_status: newStatus };
+        
       const response = await fetch(`/api/invoices/supplier/${params.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify(updateData),
       })
 
       if (response.ok) {

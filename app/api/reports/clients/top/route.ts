@@ -6,7 +6,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '10');
 
-    // Use payment_status instead of status
+    // Only aggregate PAID invoices
     const topClientsQuery = `
       SELECT 
         c.id,
@@ -21,6 +21,7 @@ export async function GET(request: Request) {
       FROM clients c
       LEFT JOIN client_invoices i ON c.id = i.clientId AND i.payment_status = 'PAID'
       GROUP BY c.id, c.name
+      HAVING totalSpent > 0
       ORDER BY totalSpent DESC
       LIMIT ?
     `;

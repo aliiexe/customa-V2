@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Trash2, Plus } from "lucide-react"
+import Link from "next/link"
 
 const formSchema = z.object({
   supplierId: z.string().min(1, "Please select a supplier"),
@@ -228,7 +229,13 @@ export default function SupplierQuoteForm() {
                       <FormItem>
                         <FormLabel>Quantity</FormLabel>
                         <FormControl>
-                          <Input type="number" min="1" {...field} />
+                          <Input 
+                            type="number" 
+                            min="1" 
+                            {...field} 
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            value={field.value}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -282,16 +289,18 @@ export default function SupplierQuoteForm() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => router.push("/quotes/supplier")}
+                asChild
               >
-                Cancel
+                <Link href="/quotes/supplier">
+                  Cancel
+                </Link>
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={isLoading}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
-                {isLoading ? "Creating..." : "Create Quote"}
+                Submit
               </Button>
             </div>
           </form>

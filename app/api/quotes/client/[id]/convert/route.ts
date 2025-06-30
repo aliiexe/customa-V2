@@ -68,6 +68,14 @@ export async function POST(
             item.totalPrice
           ],
         )
+        
+        // Update provisional stock - decrease it for client quotes
+        await connection.execute(
+          `UPDATE products 
+           SET provisionalStock = GREATEST(0, provisionalStock - ?) 
+           WHERE id = ?`,
+          [item.quantity, item.productId]
+        )
       }
 
       // Update quote status to CONVERTED and link to invoice
@@ -87,7 +95,7 @@ export async function POST(
       message: "Quote successfully converted to invoice"
     })
   } catch (error) {
-    console.error("Error converting quote to invoice:", error)
+    console.error("Error converting client quote to invoice:", error)
     return NextResponse.json(
       { error: "Failed to convert quote to invoice" },
       { status: 500 }

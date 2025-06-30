@@ -299,21 +299,31 @@ export default function NewClientQuotePage() {
 
             {/* Actions */}
             <div className="space-y-2">
-              <Button 
-                onClick={saveAsDraft} 
+              <Button
+                onClick={saveAsDraft}
                 disabled={isLoading}
                 className="w-full bg-gray-600 hover:bg-gray-700"
               >
                 <Save className="mr-2 h-4 w-4" />
                 Save as Draft
               </Button>
-              <Button 
-                onClick={sendToClient} 
+              <Button
+                onClick={sendToClient}
                 disabled={isLoading}
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 <Send className="mr-2 h-4 w-4" />
                 Send to Client
+              </Button>
+              {/* Add Cancel Button */}
+              <Button
+                asChild
+                variant="outline"
+                className="w-full"
+              >
+                <Link href="/quotes/client">
+                  Cancel
+                </Link>
               </Button>
             </div>
           </div>

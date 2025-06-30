@@ -367,7 +367,7 @@ export default function Dashboard() {
           <QuickActionsWidget />
 
           {/* Recent Activity */}
-          <RecentActivityWidget />
+          {/* <RecentActivityWidget /> */}
 
           {/* Profitability Widget */}
           <ProfitabilityWidget stats={stats} />

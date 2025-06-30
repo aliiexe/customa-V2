@@ -18,8 +18,6 @@ export async function GET() {
         client_invoice_items ii ON p.id = ii.productId
       JOIN 
         client_invoices i ON ii.invoiceId = i.id
-      WHERE 
-        i.payment_status = 'PAID'
       GROUP BY 
         p.id, p.name, p.reference, p.stockQuantity
       ORDER BY 
@@ -29,9 +27,11 @@ export async function GET() {
 
     const topProducts = await query(topProductsQuery, [])
 
-    // Check if we have actual data
+    // Format the results
+    let formattedProducts = []
+    
     if (Array.isArray(topProducts) && topProducts.length > 0) {
-      const formattedProducts = topProducts.map((product: any) => ({
+      formattedProducts = topProducts.map((product: any) => ({
         id: product.id,
         name: product.name,
         reference: product.reference,
@@ -39,28 +39,20 @@ export async function GET() {
         totalRevenue: Number(product.totalRevenue),
         currentStock: product.currentStock,
       }))
-      return NextResponse.json(formattedProducts)
     } else {
-      // Return sample data if no real sales exist
-      const sampleData = [
+      // Return sample data if no products are found
+      formattedProducts = [
         { name: "Shaker", sales: 32, totalRevenue: 640, currentStock: 15 },
-        { name: "Printer Laser", sales: 24, totalRevenue: 480, currentStock: 8 },
-        { name: "Test", sales: 18, totalRevenue: 360, currentStock: 12 },
-        { name: "Water Bottle", sales: 15, totalRevenue: 450, currentStock: 5 },
-        { name: "Coffee Cup", sales: 12, totalRevenue: 300, currentStock: 10 }
+        { name: "Coffee Cup", sales: 24, totalRevenue: 480, currentStock: 8 },
+        { name: "Water Bottle", sales: 18, totalRevenue: 360, currentStock: 12 },
+        { name: "Thermos", sales: 15, totalRevenue: 450, currentStock: 5 },
+        { name: "Insulated Mug", sales: 12, totalRevenue: 300, currentStock: 10 }
       ]
-      return NextResponse.json(sampleData)
     }
 
+    return NextResponse.json(formattedProducts)
   } catch (error) {
     console.error("Error fetching top selling products:", error)
-    
-    // Return sample data on error
-    const sampleData = [
-      { name: "Shaker", sales: 32, totalRevenue: 640, currentStock: 15 },
-      { name: "Printer Laser", sales: 24, totalRevenue: 480, currentStock: 8 },
-      { name: "Test", sales: 18, totalRevenue: 360, currentStock: 12 }
-    ]
-    return NextResponse.json(sampleData)
+    return NextResponse.json({ error: "Failed to fetch top selling products" }, { status: 500 })
   }
 }

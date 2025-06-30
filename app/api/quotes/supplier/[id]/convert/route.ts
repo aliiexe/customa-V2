@@ -56,6 +56,7 @@ export async function POST(
 
       // Create invoice items
       for (const item of items as any[]) {
+        // Insert the invoice item
         await connection.execute(
           `INSERT INTO supplier_invoice_items 
            (invoiceId, productId, quantity, unitPrice, totalPrice) 
@@ -67,6 +68,14 @@ export async function POST(
             item.unitPrice,
             item.totalPrice
           ],
+        )
+        
+        // Update provisional stock - increment it for the products in this invoice
+        await connection.execute(
+          `UPDATE products 
+           SET provisionalStock = provisionalStock + ? 
+           WHERE id = ?`,
+          [item.quantity, item.productId]
         )
       }
 
@@ -93,4 +102,4 @@ export async function POST(
       { status: 500 }
     )
   }
-} 
+}

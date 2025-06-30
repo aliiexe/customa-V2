@@ -159,14 +159,40 @@ export default function ClientReports({ dateRange }: ClientReportsProps) {
 
   const handleExportCSV = async () => {
     try {
+      if (!data) {
+        console.error("No client data available for export");
+        return;
+      }
+
+      // Fetch detailed client data
+      const [topClientsResponse, contributionsResponse] = await Promise.all([
+        fetch("/api/reports/clients/top?limit=50"),
+        fetch("/api/reports/clients/contributions"),
+      ]);
+
+      let topClients = [];
+      let contributions = [];
+
+      if (topClientsResponse.ok) {
+        topClients = await topClientsResponse.json();
+      }
+
+      if (contributionsResponse.ok) {
+        contributions = await contributionsResponse.json();
+      }
+
+      // Create comprehensive CSV data
       const csvData = [
+        // Summary data
+        ["Client Analytics Summary"],
+        [""],
         ["Metric", "Value"],
-        ["Total Clients", data?.totalClients || 0],
-        ["Active Clients", data?.activeClients || 0],
-        ["Total Revenue", data?.totalRevenue || 0],
-        ["New Clients This Month", data?.newClientsThisMonth || 0],
-        ["Average Lifetime Value", data?.avgLifetimeValue || 0],
-        ["Retention Rate %", data?.retentionRate || 0],
+        ["Total Clients", data.totalClients.toString()],
+        ["Active Clients", data.activeClients.toString()],
+        ["Total Revenue", `$${data.totalRevenue.toLocaleString()}`],
+        ["New Clients This Month", data.newClientsThisMonth.toString()],
+        ["Average Lifetime Value", `$${data.avgLifetimeValue.toFixed(2)}`],
+        ["Retention Rate %", `${data.retentionRate.toFixed(1)}%`],
         [
           "Period",
           `${format(dateRange.from, "yyyy-MM-dd")} to ${format(
@@ -174,17 +200,51 @@ export default function ClientReports({ dateRange }: ClientReportsProps) {
             "yyyy-MM-dd"
           )}`,
         ],
+        ["Generated At", new Date().toLocaleString()],
+        [""],
+        // Top clients data
+        ["Top Clients by Revenue"],
+        [""],
+        [
+          "Client Name",
+          "Total Spent",
+          "Order Count",
+          "Last Purchase",
+          "Status",
+        ],
       ];
 
-      const csvContent = csvData.map((row) => row.join(",")).join("\n");
-      const blob = new Blob([csvContent], { type: "text/csv" });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `client-report-${format(new Date(), "yyyy-MM-dd")}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
+      // Add top clients details
+      topClients.forEach((client: any) => {
+        csvData.push([
+          client.name || "",
+          `$${client.totalSpent?.toLocaleString() || "0"}`,
+          client.orderCount?.toString() || "0",
+          client.lastPurchase
+            ? format(new Date(client.lastPurchase), "yyyy-MM-dd")
+            : "Never",
+          client.status || "",
+        ]);
+      });
+
+      const csvContent = csvData
+        .map((row) => row.map((field) => `"${field}"`).join(","))
+        .join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute(
+        "download",
+        `client-report-${format(new Date(), "yyyy-MM-dd")}.csv`
+      );
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      console.log("Client report exported successfully");
     } catch (error) {
       console.error("Error exporting CSV:", error);
     }
@@ -322,7 +382,7 @@ export default function ClientReports({ dateRange }: ClientReportsProps) {
         </CardContent>
       </Card>
 
-      <Card className="bg-white shadow-sm">
+      {/* <Card className="bg-white shadow-sm">
         <CardHeader className="bg-gray-50 border-b flex flex-row justify-between items-center">
           <div>
             <CardTitle>Top Clients by Revenue</CardTitle>
@@ -339,7 +399,7 @@ export default function ClientReports({ dateRange }: ClientReportsProps) {
         <CardContent className="bg-white pt-6">
           <TopClientsTable />
         </CardContent>
-      </Card>
+      </Card> */}
 
       <Card className="bg-white shadow-sm">
         <CardHeader className="bg-gray-50 border-b">

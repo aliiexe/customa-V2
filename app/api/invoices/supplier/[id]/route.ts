@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server"
-import { query } from "@/lib/db"
+import { query, transaction } from "@/lib/db"
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const invoiceId = params.id
+    const { id: invoiceId } = await params;
 
     const invoiceResult = await query(
       `SELECT si.*, s.name as supplierName, s.email as supplierEmail, s.address as supplierAddress
@@ -36,97 +36,106 @@ export async function GET(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const invoiceId = params.id
+    const { id: invoiceId } = await params
+    console.log("Updating invoice with ID:", invoiceId)
+    
     const body = await request.json()
-    const { status } = body
-
-    if (!status) {
-      return NextResponse.json({ error: "No status provided to update." }, { status: 400 })
-    }
-
-    // Start a transaction
-    const connection = await (await import("mysql2/promise")).createConnection({
-      host: process.env.TIDB_HOST || "gateway01.us-west-2.prod.aws.tidbcloud.com",
-      port: Number.parseInt(process.env.TIDB_PORT || "4000"),
-      user: process.env.TIDB_USER || "3cCV8A7jGy25fjk.root",
-      password: process.env.TIDB_PASSWORD || "S9SQ3wgf8ntySRRc",
-      database: process.env.TIDB_DATABASE || "test",
-      ssl: { rejectUnauthorized: true },
-    })
-
-    await connection.beginTransaction()
-
-    try {
-      // Get current invoice status and items
+    console.log("Update data:", body)
+    
+    // Perform update within a transaction
+    const result = await transaction(async (connection) => {
+      // First, get the current invoice data
       const [currentInvoice] = await connection.execute(
-        "SELECT status FROM supplier_invoices WHERE id = ?",
-        [invoiceId]
-      )
-      
-      const [items] = await connection.execute(
-        "SELECT productId, quantity FROM supplier_invoice_items WHERE invoiceId = ?",
+        "SELECT * FROM supplier_invoices WHERE id = ?",
         [invoiceId]
       )
 
-      // Update invoice status
-      await connection.execute(
-        "UPDATE supplier_invoices SET status = ?, updatedAt = NOW() WHERE id = ?",
-        [status, invoiceId]
-      )
+      if ((currentInvoice as any[]).length === 0) {
+        throw new Error("Invoice not found")
+      }
 
-      // Handle stock updates based on status change
-      if (status === "received" && (currentInvoice as any[])[0].status !== "received") {
-        // When status changes to received, move provisional stock to actual stock
-        for (const item of items as any[]) {
-          await connection.execute(
-            `UPDATE products 
-             SET stockQuantity = stockQuantity + ?,
-                 provisionalStock = provisionalStock - ?,
-                 updatedAt = CURRENT_TIMESTAMP
-             WHERE id = ?`,
-            [item.quantity, item.quantity, item.productId]
+      const current = (currentInvoice as any[])[0]
+      console.log("Found invoice:", current)
+
+      // Payment or delivery status updates
+      if (body.payment_status || body.delivery_status) {
+        const updateFields = []
+        const updateValues = []
+        
+        if (body.payment_status) {
+          updateFields.push("payment_status = ?")
+          updateValues.push(body.payment_status)
+        }
+        
+        if (body.delivery_status) {
+          updateFields.push("delivery_status = ?")
+          updateValues.push(body.delivery_status)
+        }
+        
+        updateFields.push("updatedAt = NOW()")
+        
+        // Update just the status fields that were provided
+        await connection.execute(
+          `UPDATE supplier_invoices 
+           SET ${updateFields.join(', ')} 
+           WHERE id = ?`,
+          [...updateValues, invoiceId]
+        )
+
+        // Handle stock updates when delivery status changes to DELIVERED
+        if (body.delivery_status === "DELIVERED" && current.delivery_status !== "DELIVERED") {
+          const [items] = await connection.execute(
+            "SELECT productId, quantity FROM supplier_invoice_items WHERE invoiceId = ?",
+            [invoiceId]
           )
+          
+          for (const item of items as any[]) {
+            await connection.execute(
+              `UPDATE products 
+               SET stockQuantity = stockQuantity + ?,
+                   provisionalStock = provisionalStock - ?,
+                   updatedAt = NOW()
+               WHERE id = ?`,
+              [item.quantity, item.quantity, item.productId]
+            )
+          }
         }
       }
+      
+      // Return the invoice ID to fetch the updated invoice
+      return invoiceId
+    })
 
-      await connection.commit()
+    // Fetch the complete updated invoice with items for the response
+    const invoice = await query(
+      `SELECT si.*, s.name as supplierName, s.email as supplierEmail, s.address as supplierAddress
+       FROM supplier_invoices si 
+       LEFT JOIN suppliers s ON si.supplierId = s.id 
+       WHERE si.id = ?`,
+      [invoiceId]
+    )
 
-      // Fetch updated invoice with items
-      const [updatedInvoiceResult] = await connection.execute(
-        `SELECT si.*, s.name as supplierName, s.email as supplierEmail, s.address as supplierAddress
-         FROM supplier_invoices si 
-         LEFT JOIN suppliers s ON si.supplierId = s.id 
-         WHERE si.id = ?`,
-        [invoiceId]
-      )
-
-      if ((updatedInvoiceResult as any[]).length === 0) {
-        return NextResponse.json({ error: "Invoice not found after update" }, { status: 404 })
-      }
-
-      const updatedInvoice = (updatedInvoiceResult as any[])[0]
-
-      const [itemsResult] = await connection.execute(
-        `SELECT sii.*, p.name as productName, p.reference as productReference
-         FROM supplier_invoice_items sii 
-         LEFT JOIN products p ON sii.productId = p.id 
-         WHERE sii.invoiceId = ?`,
-        [invoiceId]
-      )
-
-      updatedInvoice.items = itemsResult
-
-      return NextResponse.json(updatedInvoice)
-    } catch (error) {
-      await connection.rollback()
-      throw error
-    } finally {
-      connection.end()
+    if ((invoice as any[]).length === 0) {
+      return NextResponse.json({ error: "Invoice not found after update" }, { status: 404 })
     }
+
+    const updatedInvoice = (invoice as any[])[0]
+
+    const items = await query(
+      `SELECT sii.*, p.name as productName, p.reference as productReference
+       FROM supplier_invoice_items sii 
+       LEFT JOIN products p ON sii.productId = p.id 
+       WHERE sii.invoiceId = ?`,
+      [invoiceId]
+    )
+
+    updatedInvoice.items = items
+
+    return NextResponse.json(updatedInvoice)
   } catch (error) {
     console.error("Error updating supplier invoice:", error)
     return NextResponse.json({ error: "Failed to update supplier invoice" }, { status: 500 })
   }
-} 
+}

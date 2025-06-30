@@ -223,12 +223,13 @@ export default function ProductsTable({ filters }: ProductsTableProps) {
   };
 
   const getStockStatusBadge = (product: Product) => {
-    const totalStock = product.stockQuantity + (product.provisionalStock || 0);
+    // Use only actual stock for status badges, not provisional
+    const actualStock = product.stockQuantity;
     const reorderLevel = product.reorderLevel || 5;
 
-    if (totalStock === 0) {
+    if (actualStock === 0) {
       return <Badge variant="destructive">Out of Stock</Badge>;
-    } else if (totalStock <= reorderLevel) {
+    } else if (actualStock <= reorderLevel) {
       return <Badge className="bg-amber-100 text-amber-800 border-amber-200">Low Stock</Badge>;
     } else {
       return <Badge className="bg-green-100 text-green-800 border-green-200">In Stock</Badge>;
@@ -432,11 +433,14 @@ export default function ProductsTable({ filters }: ProductsTableProps) {
                         <div className="font-medium text-gray-900">
                           {product.stockQuantity}
                           {product.provisionalStock && product.provisionalStock > 0 && (
-                            <span className="text-blue-600"> (+{product.provisionalStock})</span>
+                            <span className="text-blue-600 ml-1 text-xs">(+{product.provisionalStock} on order)</span>
                           )}
                         </div>
                         <div className="text-xs text-gray-500">
-                          Total: {product.stockQuantity + (product.provisionalStock || 0)}
+                          Actual: {product.stockQuantity}
+                          {product.provisionalStock > 0 && (
+                            <> • Expected: {product.stockQuantity + product.provisionalStock}</>
+                          )}
                         </div>
                       </div>
                     </TableCell>

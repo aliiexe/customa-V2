@@ -16,7 +16,7 @@ export async function GET() {
       LEFT JOIN 
         product_categories c ON p.categoryId = c.id
       WHERE 
-        p.stockQuantity < 20 AND p.stockQuantity >= 0
+        p.stockQuantity < 20
       ORDER BY 
         p.stockQuantity ASC
       LIMIT 10
@@ -24,36 +24,32 @@ export async function GET() {
 
     const lowStockProducts = await query(lowStockQuery, [])
 
-    // Check if we have actual data
+    // Format the results
+    let formattedProducts = []
+    
     if (Array.isArray(lowStockProducts) && lowStockProducts.length > 0) {
-      const formattedProducts = lowStockProducts.map((product: any) => ({
+      formattedProducts = lowStockProducts.map((product: any) => ({
         id: product.id,
         name: product.name,
         reference: product.reference,
-        stock: Number(product.stockQuantity),
+        stock: product.stockQuantity,
         category: product.category || "Uncategorized",
         status: product.stockQuantity <= 5 ? "critical" : product.stockQuantity <= 10 ? "low" : "medium",
       }))
-      return NextResponse.json(formattedProducts)
     } else {
-      // Return sample data if no low stock products exist
-      const sampleData = [
-        { name: "Test", stock: 8, status: "low", category: "Office" },
-        { name: "Shaker", stock: 5, status: "critical", category: "Kitchen" },
-        { name: "Printer Laser", stock: 12, status: "medium", category: "Electronics" }
+      // Return sample data if no products are found
+      formattedProducts = [
+        { name: "Coffee Cup", stock: 8, status: "low", category: "Drinkware" },
+        { name: "Thermos", stock: 5, status: "critical", category: "Drinkware" },
+        { name: "Water Bottle", stock: 12, status: "medium", category: "Drinkware" },
+        { name: "Cocktail Shaker", stock: 3, status: "critical", category: "Barware" },
+        { name: "Shot Glass", stock: 7, status: "low", category: "Glassware" }
       ]
-      return NextResponse.json(sampleData)
     }
 
+    return NextResponse.json(formattedProducts)
   } catch (error) {
     console.error("Error fetching stock levels:", error)
-    
-    // Return sample data on error
-    const sampleData = [
-      { name: "Test", stock: 8, status: "low", category: "Office" },
-      { name: "Shaker", stock: 5, status: "critical", category: "Kitchen" },
-      { name: "Printer Laser", stock: 12, status: "medium", category: "Electronics" }
-    ]
-    return NextResponse.json(sampleData)
+    return NextResponse.json({ error: "Failed to fetch stock levels" }, { status: 500 })
   }
 }

@@ -34,10 +34,15 @@ export function ClientsSpendingChart() {
           throw new Error("Failed to fetch spending data");
         }
 
-        // Map response to match interface
         const spendingData = await response.json();
+        console.log("Spending data:", spendingData); // Debug log
+
+        // Format the data for the chart
         const formattedData = spendingData.map((item: any) => ({
-          month: item.month,
+          month: new Date(item.month + "-01").toLocaleDateString("en-US", {
+            month: "short",
+            year: "2-digit",
+          }),
           spending: Number(item.spending),
           orders: Number(item.orders),
         }));
@@ -55,46 +60,66 @@ export function ClientsSpendingChart() {
   }, []);
 
   if (loading) {
-    return <Skeleton className="h-[300px] w-full" />;
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="text-red-500">{error}</div>;
+    return <div className="text-red-500 text-center py-8">{error}</div>;
+  }
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="text-gray-500 text-center py-8">
+        No spending data available
+      </div>
+    );
   }
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="month" />
-        <YAxis yAxisId="left" orientation="left" />
-        <YAxis yAxisId="right" orientation="right" />
-        <Tooltip
-          formatter={(value) => `$${Number(value).toFixed(2)}`}
-          labelStyle={{ color: "#111" }}
-          contentStyle={{ background: "white", border: "1px solid #ddd" }}
-        />
-        <Legend />
-        <Line
-          yAxisId="left"
-          type="monotone"
-          dataKey="spending"
-          name="Spending ($)"
-          stroke="#4f46e5"
-          strokeWidth={2}
-          dot={{ r: 4 }}
-          activeDot={{ r: 6 }}
-        />
-        <Line
-          yAxisId="right"
-          type="monotone"
-          dataKey="orders"
-          name="Orders"
-          stroke="#10b981"
-          strokeWidth={2}
-          dot={{ r: 4 }}
-        />
-      </LineChart>
-    </ResponsiveContainer>
+    <div className="w-full h-80">
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+          <YAxis
+            yAxisId="spending"
+            orientation="left"
+            tick={{ fontSize: 12 }}
+            tickFormatter={(value) => `$${value.toLocaleString()}`}
+          />
+          <YAxis yAxisId="orders" orientation="right" tick={{ fontSize: 12 }} />
+          <Tooltip
+            formatter={(value, name) => [
+              name === "spending" ? `$${Number(value).toLocaleString()}` : value,
+              name === "spending" ? "Spending" : "Orders",
+            ]}
+          />
+          <Legend />
+          <Line
+            yAxisId="spending"
+            type="monotone"
+            dataKey="spending"
+            stroke="#3b82f6"
+            strokeWidth={2}
+            name="Spending"
+            dot={{ fill: "#3b82f6" }}
+          />
+          <Line
+            yAxisId="orders"
+            type="monotone"
+            dataKey="orders"
+            stroke="#10b981"
+            strokeWidth={2}
+            name="Orders"
+            dot={{ fill: "#10b981" }}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
   );
 }

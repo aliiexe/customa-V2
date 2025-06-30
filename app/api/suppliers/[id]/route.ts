@@ -6,7 +6,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
   try {
     const supplierId = params.id;
 
-    // Get basic supplier info with stats
+    // Per-supplier stats
     const supplierQuery = `
       SELECT 
         s.*,
@@ -14,7 +14,8 @@ export async function GET(request: Request, { params }: { params: { id: string }
         COUNT(DISTINCT si.id) as invoiceCount,
         COALESCE(SUM(CASE WHEN si.payment_status = 'UNPAID' THEN si.totalAmount ELSE 0 END), 0) as unpaidAmount,
         COALESCE(SUM(CASE WHEN si.payment_status = 'PAID' THEN si.totalAmount ELSE 0 END), 0) as totalSpent,
-        MAX(si.dateCreated) as lastOrderDate
+        MAX(si.dateCreated) as lastOrderDate,
+        AVG(DATEDIFF(si.deliveryDate, si.dateCreated)) as averageDeliveryTime
       FROM 
         suppliers s
       LEFT JOIN 
@@ -22,7 +23,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
       LEFT JOIN 
         supplier_invoices si ON s.id = si.supplierId
       WHERE s.id = ?
-      GROUP BY s.id, s.name, s.contactName, s.address, s.email, s.phoneNumber, s.website, s.createdAt, s.updatedAt
+      GROUP BY s.id
     `;
 
     const supplierResult = await query(supplierQuery, [supplierId]);
@@ -33,16 +34,14 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
     const supplier = supplierResult[0] as any;
 
-    // Format the supplier data
-    const formattedSupplier = {
+    return NextResponse.json({
       ...supplier,
       productCount: Number(supplier.productCount || 0),
       invoiceCount: Number(supplier.invoiceCount || 0),
       totalSpent: Number(supplier.totalSpent || 0),
-      unpaidAmount: Number(supplier.unpaidAmount || 0)
-    };
-
-    return NextResponse.json(formattedSupplier);
+      unpaidAmount: Number(supplier.unpaidAmount || 0),
+      averageDeliveryTime: supplier.averageDeliveryTime ? Number(supplier.averageDeliveryTime).toFixed(1) : null,
+    });
   } catch (error) {
     console.error(`Error fetching supplier ${params.id}:`, error);
     return NextResponse.json({ error: "Failed to fetch supplier" }, { status: 500 });

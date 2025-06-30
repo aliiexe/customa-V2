@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
-import { ArrowLeft, Edit, Send, CheckCircle, FileText, Eye, Calendar, DollarSign, User, Hash } from "lucide-react"
+import { ArrowLeft, Edit, Send, CheckCircle, FileText, Eye, Calendar, DollarSign, User, Hash, XCircle } from "lucide-react"
 import Link from "next/link"
 import { QuoteStatus } from "@/types/quote-models"
 
@@ -126,6 +126,28 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
     } catch (error) {
       console.error("Error confirming quote:", error)
       alert("Failed to confirm quote")
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleRejectQuote = async () => {
+    if (!quote) return
+    setIsUpdating(true)
+    try {
+      const response = await fetch(`/api/quotes/client/${quote.id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: QuoteStatus.REJECTED }),
+      })
+      if (response.ok) {
+        setQuote({ ...quote, status: QuoteStatus.REJECTED })
+      } else {
+        alert("Failed to reject quote")
+      }
+    } catch (error) {
+      console.error("Error rejecting quote:", error)
+      alert("Failed to reject quote")
     } finally {
       setIsUpdating(false)
     }
@@ -298,14 +320,25 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ id: stri
                 )}
 
                 {quote.status === QuoteStatus.PENDING && (
-                  <Button 
-                    onClick={handleConfirmQuote}
-                    disabled={isUpdating}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                    Confirm Quote
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleConfirmQuote}
+                      disabled={isUpdating}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      Confirm Quote
+                    </Button>
+                    <Button
+                      onClick={handleRejectQuote}
+                      disabled={isUpdating}
+                      variant="destructive"
+                      className="w-full"
+                    >
+                      <XCircle className="mr-2 h-4 w-4" />
+                      Reject Quote
+                    </Button>
+                  </div>
                 )}
 
                 {(quote.status === QuoteStatus.CONFIRMED || quote.status === QuoteStatus.APPROVED) && (

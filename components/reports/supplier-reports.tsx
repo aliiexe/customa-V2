@@ -101,21 +101,102 @@ export default function SupplierReports({ dateRange }: SupplierReportsProps) {
 
   const handleExportCSV = async () => {
     try {
-      const response = await fetch(
-        `/api/reports/suppliers/export?startDate=${
-          dateRange.from.toISOString().split("T")[0]
-        }&endDate=${dateRange.to.toISOString().split("T")[0]}`
-      );
-      if (!response.ok) throw new Error("Failed to export data");
+      if (!data) {
+        console.error("No supplier data available for export");
+        return;
+      }
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `supplier-report-${format(new Date(), "yyyy-MM-dd")}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
+      // Fetch detailed supplier data
+      const [expensesResponse, productsResponse] = await Promise.all([
+        fetch("/api/reports/suppliers/expenses?limit=50"),
+        fetch("/api/reports/suppliers/products"),
+      ]);
+
+      let expenses = [];
+      let products = [];
+
+      if (expensesResponse.ok) {
+        expenses = await expensesResponse.json();
+      }
+
+      if (productsResponse.ok) {
+        products = await productsResponse.json();
+      }
+
+      // Create comprehensive CSV data
+      const csvData = [
+        // Summary data
+        ["Supplier Analytics Summary"],
+        [""],
+        ["Metric", "Value"],
+        ["Total Suppliers", data.totalSuppliers.toString()],
+        ["Active Suppliers", data.activeSuppliers.toString()],
+        ["Total Products", data.totalProducts?.toString() || "0"],
+        ["Total Expenses", `$${data.totalExpenses.toLocaleString()}`],
+        ["Pending Invoices", data.pendingInvoices?.toString() || "0"],
+        ["Pending Amount", `$${data.pendingAmount?.toLocaleString() || "0"}`],
+        ["Supplier Efficiency %", `${data.supplierEfficiency.toFixed(1)}%`],
+        [
+          "Period",
+          `${format(dateRange.from, "yyyy-MM-dd")} to ${format(
+            dateRange.to,
+            "yyyy-MM-dd"
+          )}`,
+        ],
+        ["Generated At", new Date().toLocaleString()],
+        [""],
+        // Supplier expenses data
+        ["Supplier Expenses"],
+        [""],
+        ["Supplier Name", "Total Expenses", "Products Count"],
+      ];
+
+      // Add expenses details
+      expenses.forEach((supplier: any) => {
+        csvData.push([
+          supplier.name || "",
+          `$${supplier.expenses?.toLocaleString() || "0"}`,
+          supplier.products?.toString() || "0",
+        ]);
+      });
+
+      csvData.push([""], ["Supplier Products Distribution"], [""]);
+      csvData.push([
+        "Supplier Name",
+        "Product Count",
+        "Average Price",
+        "Market Share %",
+      ]);
+
+      // Add products details
+      products.forEach((supplier: any) => {
+        csvData.push([
+          supplier.name || "",
+          supplier.totalProducts?.toString() || "0",
+          `$${supplier.avgPrice?.toFixed(2) || "0.00"}`,
+          `${supplier.percentage?.toFixed(1) || "0"}%`,
+        ]);
+      });
+
+      const csvContent = csvData.map((row) =>
+        row.map((field) => `"${field}"`).join(",")
+      );
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute(
+        "download",
+        `supplier-report-${format(new Date(), "yyyy-MM-dd")}.csv`
+      );
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      console.log("Supplier report exported successfully");
     } catch (error) {
       console.error("Error exporting CSV:", error);
     }
@@ -302,7 +383,7 @@ export default function SupplierReports({ dateRange }: SupplierReportsProps) {
           </CardContent>
         </Card>
 
-        <Card className="bg-white shadow-sm">
+        {/* <Card className="bg-white shadow-sm">
           <CardHeader className="bg-gray-50 border-b">
             <CardTitle>Supplier Expenses</CardTitle>
             <CardDescription>Monthly expense breakdown</CardDescription>
@@ -310,7 +391,7 @@ export default function SupplierReports({ dateRange }: SupplierReportsProps) {
           <CardContent className="pt-6 bg-white">
             <SupplierExpensesChart />
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       <Card className="bg-white shadow-sm">

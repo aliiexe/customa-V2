@@ -8,65 +8,67 @@ export async function GET(request: Request) {
     const endDate = searchParams.get('endDate') || new Date().toISOString().split('T')[0];
 
     // Get total clients
-    const totalClientsQuery = `SELECT COUNT(*) as totalClients FROM clients`;
-    const totalClientsResult = await query(totalClientsQuery);
+    const totalClientsResult = await query(`SELECT COUNT(*) as totalClients FROM clients`);
     const totalClients = Array.isArray(totalClientsResult) && totalClientsResult[0] 
-      ? totalClientsResult[0].totalClients || 0 
+      ? Number(totalClientsResult[0].totalClients) || 0 
       : 0;
 
-    // Get active clients (clients with orders in last 3 months)
-    const activeClientsQuery = `
+    // Get active clients (clients with paid orders in last 3 months)
+    const activeClientsResult = await query(`
       SELECT COUNT(DISTINCT c.id) as activeClients
       FROM clients c
       INNER JOIN client_invoices ci ON c.id = ci.clientId
       WHERE ci.dateCreated >= DATE_SUB(NOW(), INTERVAL 3 MONTH)
       AND ci.payment_status = 'PAID'
-    `;
-    const activeClientsResult = await query(activeClientsQuery);
+    `);
     const activeClients = Array.isArray(activeClientsResult) && activeClientsResult[0] 
-      ? activeClientsResult[0].activeClients || 0 
+      ? Number(activeClientsResult[0].activeClients) || 0 
       : 0;
 
-    // Get total revenue from clients
-    const revenueQuery = `
+    // Get total revenue from clients in date range
+    const revenueResult = await query(`
       SELECT COALESCE(SUM(totalAmount), 0) as totalRevenue
       FROM client_invoices
       WHERE payment_status = 'PAID'
       AND dateCreated BETWEEN ? AND ?
-    `;
-    const revenueResult = await query(revenueQuery, [startDate, endDate]);
+    `, [startDate, endDate]);
     const totalRevenue = Array.isArray(revenueResult) && revenueResult[0] 
-      ? revenueResult[0].totalRevenue || 0 
+      ? Number(revenueResult[0].totalRevenue) || 0 
       : 0;
 
     // Get new clients this month
-    const newClientsQuery = `
+    const newClientsResult = await query(`
       SELECT COUNT(*) as newClients
       FROM clients
       WHERE createdAt >= DATE_FORMAT(NOW(), '%Y-%m-01')
-    `;
-    const newClientsResult = await query(newClientsQuery);
+    `);
     const newClientsThisMonth = Array.isArray(newClientsResult) && newClientsResult[0] 
-      ? newClientsResult[0].newClients || 0 
+      ? Number(newClientsResult[0].newClients) || 0 
       : 0;
 
-    // Calculate average lifetime value
+    // Calculate metrics
     const avgLifetimeValue = totalClients > 0 ? totalRevenue / totalClients : 0;
-
-    // Calculate retention rate
     const retentionRate = totalClients > 0 ? (activeClients / totalClients) * 100 : 0;
 
     return NextResponse.json({
-      totalClients: Number(totalClients),
-      activeClients: Number(activeClients),
-      totalRevenue: Number(totalRevenue),
-      newClientsThisMonth: Number(newClientsThisMonth),
-      avgLifetimeValue: Number(avgLifetimeValue),
-      retentionRate: Number(retentionRate)
+      totalClients,
+      activeClients,
+      totalRevenue,
+      newClientsThisMonth,
+      avgLifetimeValue: Number(avgLifetimeValue.toFixed(2)),
+      retentionRate: Number(retentionRate.toFixed(2))
     });
 
   } catch (error) {
     console.error("Error fetching client data:", error);
-    return NextResponse.json({ error: "Failed to fetch client data" }, { status: 500 });
+    return NextResponse.json({ 
+      error: "Failed to fetch client data",
+      totalClients: 0,
+      activeClients: 0,
+      totalRevenue: 0,
+      newClientsThisMonth: 0,
+      avgLifetimeValue: 0,
+      retentionRate: 0
+    }, { status: 500 });
   }
 }

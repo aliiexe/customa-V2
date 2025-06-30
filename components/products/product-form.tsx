@@ -142,11 +142,12 @@ export default function ProductForm({
     : "0";
 
   const profitAmount = watchSellingPrice - watchSupplierPrice;
-  const totalStock = watchStockQuantity + watchProvisionalStock;
+  const actualStock = watchStockQuantity;
+  const totalIncludingProvisional = watchStockQuantity + watchProvisionalStock;
 
   // Check if stock is low
-  const isLowStock = totalStock <= watchReorderLevel && totalStock > 0;
-  const isOutOfStock = totalStock === 0;
+  const isLowStock = actualStock <= watchReorderLevel && actualStock > 0;
+  const isOutOfStock = actualStock === 0;
 
   // Load categories and suppliers
   useEffect(() => {
@@ -692,12 +693,18 @@ export default function ProductForm({
                 <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
                     <Warehouse className="h-4 w-4 text-gray-600" />
-                    <span className="text-sm font-medium text-gray-700">Total Available Stock</span>
+                    <span className="text-sm font-medium text-gray-700">Inventory Summary</span>
                   </div>
-                  <div className="text-2xl font-bold text-gray-700">{totalStock} units</div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    Current: {watchStockQuantity} + Provisional: {watchProvisionalStock}
+                  <div className="flex items-center gap-2">
+                    <div className="text-2xl font-bold text-gray-700">{actualStock}</div>
+                    <div className="text-sm font-medium text-gray-500">units in stock</div>
                   </div>
+                  {watchProvisionalStock > 0 && (
+                    <div className="text-sm text-blue-600 mt-1 flex items-center gap-1">
+                      <Info className="h-4 w-4" />
+                      <span>{watchProvisionalStock} units on order (provisional)</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="p-4 border rounded-lg">
@@ -714,6 +721,20 @@ export default function ProductForm({
                   )}
                   <div className="text-xs text-gray-500 mt-1">
                     Reorder level: {watchReorderLevel} units
+                  </div>
+                </div>
+              </div>
+
+              {/* Add this new information card */}
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+                <div className="flex items-start gap-2">
+                  <Info className="h-4 w-4 text-blue-600 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-medium text-blue-700">About Provisional Stock</h4>
+                    <p className="text-xs text-blue-600 mt-1">
+                      Provisional stock represents quantities you expect to receive but don't physically have yet.
+                      This stock will only be added to your actual inventory when a supplier invoice is marked as delivered.
+                    </p>
                   </div>
                 </div>
               </div>

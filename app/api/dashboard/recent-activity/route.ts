@@ -8,17 +8,17 @@ export async function GET(request: Request) {
 
     const activities = [];
 
-    // Recent products added
+    // Recent products
     const recentProducts = await query(`
       SELECT 
         p.id,
         p.name,
         p.reference,
-        p.createdAt,
+        p.created_at AS createdAt,
         c.name as categoryName
       FROM products p
       LEFT JOIN categories c ON p.categoryId = c.id
-      ORDER BY p.createdAt DESC
+      ORDER BY p.created_at DESC
       LIMIT 3
     `, []);
 
@@ -54,7 +54,7 @@ export async function GET(request: Request) {
         activities.push({
           id: `invoice-${invoice.id}`,
           type: 'invoice',
-          title: `Invoice #${invoice.id} ${invoice.payment_status.toLowerCase()}`,
+          title: `Invoice #${invoice.id} ${invoice.payment_status ? invoice.payment_status.toLowerCase() : ''}`,
           description: `Invoice for ${invoice.clientName}`,
           timestamp: invoice.dateCreated,
           value: invoice.totalAmount,
@@ -64,15 +64,15 @@ export async function GET(request: Request) {
       });
     }
 
-    // Recent clients added
+    // Recent clients
     const recentClients = await query(`
       SELECT 
         id,
         name,
         email,
-        createdAt
+        created_at AS createdAt
       FROM clients
-      ORDER BY createdAt DESC
+      ORDER BY created_at DESC
       LIMIT 2
     `, []);
 
@@ -89,7 +89,7 @@ export async function GET(request: Request) {
       });
     }
 
-    // Sort all activities by timestamp
+    // Sort by timestamp
     activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
     return NextResponse.json(activities.slice(0, limit));

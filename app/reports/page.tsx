@@ -1,10 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Printer, Share2, FileText, Calendar } from "lucide-react";
+import {
+  Download,
+  Printer,
+  Share2,
+  FileText,
+  Calendar,
+  BarChart3,
+  Package,
+  Users,
+  Building2,
+} from "lucide-react";
 import SalesReports from "@/components/reports/sales-reports";
 import ProductReports from "@/components/reports/product-reports";
 import ClientReports from "@/components/reports/client-reports";
@@ -12,6 +21,7 @@ import SupplierReports from "@/components/reports/supplier-reports";
 import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { exportToPdf } from "@/lib/pdf-export";
 
 export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState("sales");
@@ -19,12 +29,11 @@ export default function ReportsPage() {
   const [isPrinting, setIsPrinting] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [dateRange, setDateRange] = useState({
-    from: new Date(new Date().getFullYear(), 0, 1), // Start of current year
+    from: new Date(new Date().getFullYear(), 0, 1),
     to: new Date(),
   });
   const { toast } = useToast();
 
-  // Define report titles for export
   const reportTitles = {
     sales: "Sales Reports",
     products: "Product Reports",
@@ -32,47 +41,60 @@ export default function ReportsPage() {
     suppliers: "Supplier Reports",
   };
 
+  const tabConfig = [
+    {
+      value: "sales",
+      label: "Sales",
+      icon: BarChart3,
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
+    },
+    {
+      value: "products",
+      label: "Products",
+      icon: Package,
+      color: "text-green-600",
+      bgColor: "bg-green-50",
+    },
+    {
+      value: "clients",
+      label: "Clients",
+      icon: Users,
+      color: "text-purple-600",
+      bgColor: "bg-purple-50",
+    },
+    {
+      value: "suppliers",
+      label: "Suppliers",
+      icon: Building2,
+      color: "text-orange-600",
+      bgColor: "bg-orange-50",
+    },
+  ];
+
   const handleExport = async () => {
     setIsExporting(true);
     try {
-      // Create comprehensive report data
-      const reportData = {
-        reportType: reportTitles[activeTab as keyof typeof reportTitles],
-        dateRange: {
-          from: format(dateRange.from, "yyyy-MM-dd"),
-          to: format(dateRange.to, "yyyy-MM-dd"),
-        },
-        generatedAt: new Date().toISOString(),
-        data: `Report for ${activeTab} from ${format(
-          dateRange.from,
-          "PPP"
-        )} to ${format(dateRange.to, "PPP")}`,
-      };
+      const reportElement = document.getElementById("report-content");
+      if (!reportElement) throw new Error("Report content not found");
 
-      const blob = new Blob([JSON.stringify(reportData, null, 2)], {
-        type: "application/json",
-      });
-
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${activeTab}-report-${format(
-        new Date(),
-        "yyyy-MM-dd"
-      )}.json`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
+      const filename = `${
+        reportTitles[activeTab as keyof typeof reportTitles]
+      } - ${format(dateRange.from, "MMM dd, yyyy")} to ${format(
+        dateRange.to,
+        "MMM dd, yyyy"
+      )}.pdf`;
+      await exportToPdf(reportElement, filename);
 
       toast({
         title: "Export Successful",
-        description: "Report has been exported successfully",
+        description: "Report has been exported as PDF successfully",
       });
     } catch (error) {
-      console.error("Error exporting:", error);
+      console.error("Error exporting PDF:", error);
       toast({
         title: "Export Failed",
-        description: "Could not export the report",
+        description: "Could not export the report as PDF",
         variant: "destructive",
       });
     } finally {
@@ -104,7 +126,9 @@ export default function ReportsPage() {
     try {
       if (navigator.share) {
         await navigator.share({
-          title: reportTitles[activeTab as keyof typeof reportTitles],
+          title: `${
+            reportTitles[activeTab as keyof typeof reportTitles]
+          } - Business Analytics`,
           url: window.location.href,
         });
       } else {
@@ -126,128 +150,133 @@ export default function ReportsPage() {
     }
   };
 
-  const handleDateRangeChange = (range: { from: Date; to: Date }) => {
-    setDateRange(range);
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "sales":
+        return <SalesReports dateRange={dateRange} />;
+      case "products":
+        return <ProductReports />;
+      case "clients":
+        return <ClientReports dateRange={dateRange} />;
+      case "suppliers":
+        return <SupplierReports dateRange={dateRange} />;
+      default:
+        return <SalesReports dateRange={dateRange} />;
+    }
   };
 
+  const currentTab = tabConfig.find((tab) => tab.value === activeTab);
+
   return (
-    <div className="space-y-6 pb-10">
+    <div className="min-h-screen bg-gray-50 p-4 space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-lg border shadow-sm">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-primary">
-            Reports Dashboard
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Comprehensive business analytics and insights
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            onClick={handleExport}
-            disabled={isExporting}
-            className="border-primary hover:bg-primary/10"
-          >
-            <Download className="mr-2 h-4 w-4" />
-            {isExporting ? "Exporting..." : "Export"}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handlePrint}
-            disabled={isPrinting}
-            className="border-primary hover:bg-primary/10"
-          >
-            <Printer className="mr-2 h-4 w-4" />
-            {isPrinting ? "Printing..." : "Print"}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleShare}
-            disabled={isSharing}
-            className="border-primary hover:bg-primary/10"
-          >
-            <Share2 className="mr-2 h-4 w-4" />
-            {isSharing ? "Sharing..." : "Share"}
-          </Button>
+      <div className="bg-white p-6 rounded-xl border shadow-sm">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+              <FileText className="h-8 w-8 text-primary" />
+              Reports Dashboard
+            </h1>
+            <p className="text-gray-600">
+              Comprehensive business analytics and insights
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              onClick={handleExport}
+              disabled={isExporting}
+              className="border-primary text-primary hover:bg-primary hover:text-white"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              {isExporting ? "Generating..." : "Export PDF"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handlePrint}
+              disabled={isPrinting}
+              className="border-gray-300 hover:bg-gray-50"
+            >
+              <Printer className="mr-2 h-4 w-4" />
+              Print
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleShare}
+              disabled={isSharing}
+              className="border-gray-300 hover:bg-gray-50"
+            >
+              <Share2 className="mr-2 h-4 w-4" />
+              Share
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Date Range Picker */}
-      <div className="flex items-center p-4 bg-white rounded-lg shadow-sm border">
-        <div className="flex items-center gap-2 text-primary">
-          <Calendar className="h-5 w-5" />
-          <span className="font-medium">Report period: </span>
-        </div>
-        <div className="ml-4">
-          <DatePickerWithRange
-            dateRange={dateRange}
-            onUpdate={handleDateRangeChange}
-          />
+      <div className="bg-white p-4 rounded-xl border shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 text-primary font-medium">
+            <Calendar className="h-5 w-5" />
+            <span>Report Period:</span>
+          </div>
+          <DatePickerWithRange dateRange={dateRange} onUpdate={setDateRange} />
         </div>
       </div>
 
-      {/* Main Content */}
-      <Card className="border-t-4 border-t-primary shadow-sm">
-        <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b">
-          <CardTitle className="text-xl font-semibold text-primary flex items-center">
-            <FileText className="mr-2 h-5 w-5" />
-            {reportTitles[activeTab as keyof typeof reportTitles]}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6 bg-white">
-          <Tabs
-            defaultValue="sales"
-            value={activeTab}
-            onValueChange={setActiveTab}
-          >
-            <TabsList className="grid grid-cols-2 md:grid-cols-4 w-full mb-8 bg-secondary/50 p-1">
-              <TabsTrigger
-                value="sales"
-                className="data-[state=active]:bg-white data-[state=active]:text-primary font-medium"
-              >
-                Sales
-              </TabsTrigger>
-              <TabsTrigger
-                value="products"
-                className="data-[state=active]:bg-white data-[state=active]:text-primary font-medium"
-              >
-                Products
-              </TabsTrigger>
-              <TabsTrigger
-                value="clients"
-                className="data-[state=active]:bg-white data-[state=active]:text-primary font-medium"
-              >
-                Clients
-              </TabsTrigger>
-              <TabsTrigger
-                value="suppliers"
-                className="data-[state=active]:bg-white data-[state=active]:text-primary font-medium"
-              >
-                Suppliers
-              </TabsTrigger>
-            </TabsList>
+      {/* Navigation Tabs */}
+      <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+        {/* Tab Headers */}
+        <div className="border-b border-gray-200">
+          <div className="flex">
+            {tabConfig.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.value;
 
-            <div id="report-content" className="bg-white">
-              <TabsContent value="sales" className="mt-0">
-                <SalesReports dateRange={dateRange} />
-              </TabsContent>
+              return (
+                <button
+                  key={tab.value}
+                  onClick={() => setActiveTab(tab.value)}
+                  className={`
+                    flex items-center gap-3 px-6 py-4 text-sm font-medium border-b-2 transition-all min-w-0 flex-1
+                    ${
+                      isActive
+                        ? `border-blue-500 ${tab.color} bg-blue-50`
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }
+                  `}
+                >
+                  <Icon className="h-5 w-5 flex-shrink-0" />
+                  <span className="font-semibold truncate">{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-              <TabsContent value="products" className="mt-0">
-                <ProductReports />
-              </TabsContent>
-
-              <TabsContent value="clients" className="mt-0">
-                <ClientReports dateRange={dateRange} />
-              </TabsContent>
-
-              <TabsContent value="suppliers" className="mt-0">
-                <SupplierReports dateRange={dateRange} />
-              </TabsContent>
+        {/* Tab Content Header */}
+        {currentTab && (
+          <div className={`p-6 border-b ${currentTab.bgColor}`}>
+            <div className="flex items-center gap-3">
+              <currentTab.icon className={`h-6 w-6 ${currentTab.color}`} />
+              <div>
+                <h2 className={`text-2xl font-bold ${currentTab.color}`}>
+                  {reportTitles[activeTab as keyof typeof reportTitles]}
+                </h2>
+                <p className="text-gray-600 text-sm mt-1">
+                  Period: {format(dateRange.from, "MMM dd, yyyy")} -{" "}
+                  {format(dateRange.to, "MMM dd, yyyy")}
+                </p>
+              </div>
             </div>
-          </Tabs>
-        </CardContent>
-      </Card>
+          </div>
+        )}
+
+        {/* Tab Content */}
+        <div id="report-content" className="p-6 bg-white">
+          {renderTabContent()}
+        </div>
+      </div>
     </div>
   );
 }

@@ -99,17 +99,87 @@ export default function ProductReports() {
 
   const handleExportCSV = async () => {
     try {
-      const response = await fetch("/api/reports/products/export");
-      if (!response.ok) throw new Error("Failed to export data");
+      if (!data) {
+        console.error("No product data available for export");
+        return;
+      }
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `product-inventory-${format(new Date(), "yyyy-MM-dd")}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
+      // Fetch detailed inventory data
+      const inventoryResponse = await fetch(
+        "/api/reports/products/inventory?limit=1000"
+      );
+      let inventoryData = [];
+
+      if (inventoryResponse.ok) {
+        const response = await inventoryResponse.json();
+        inventoryData = response.products || [];
+      }
+
+      // Create comprehensive CSV data
+      const csvData = [
+        // Summary data
+        ["Product Analytics Summary"],
+        [""],
+        ["Metric", "Value"],
+        ["Total Products", data.totalProducts.toString()],
+        ["In Stock Products", data.inStockCount.toString()],
+        ["Low Stock Products", data.lowStockCount.toString()],
+        ["Out of Stock Products", data.outOfStockCount.toString()],
+        [
+          "Total Inventory Value",
+          `$${data.totalInventoryValue.toLocaleString()}`,
+        ],
+        ["Total Categories", data.totalCategories.toString()],
+        ["Generated At", new Date().toLocaleString()],
+        [""],
+        // Detailed inventory data
+        ["Detailed Inventory"],
+        [""],
+        [
+          "Product Name",
+          "Reference",
+          "Category",
+          "Supplier",
+          "Stock Quantity",
+          "Status",
+          "Selling Price",
+          "Total Value",
+        ],
+      ];
+
+      // Add inventory details
+      inventoryData.forEach((item: any) => {
+        csvData.push([
+          item.name || "",
+          item.reference || "",
+          item.category || "",
+          item.supplier || "",
+          item.inStock?.toString() || "0",
+          item.status || "",
+          `$${item.sellingPrice?.toFixed(2) || "0.00"}`,
+          `$${item.totalValue?.toFixed(2) || "0.00"}`,
+        ]);
+      });
+
+      const csvContent = csvData
+        .map((row) => row.map((field) => `"${field}"`).join(","))
+        .join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute(
+        "download",
+        `product-inventory-${format(new Date(), "yyyy-MM-dd")}.csv`
+      );
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      console.log("Product report exported successfully");
     } catch (error) {
       console.error("Error exporting CSV:", error);
     }

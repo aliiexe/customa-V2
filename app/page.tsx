@@ -1,53 +1,53 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { AlertCircle, DollarSign, Package, ShoppingCart } from "lucide-react"
-import { RevenueChart } from "@/components/dashboard/revenue-chart"
-import { CategoryDistribution } from "@/components/dashboard/category-distribution"
-import { TopSellingProducts } from "@/components/dashboard/top-selling-products"
-import { StockLevelsChart } from "@/components/dashboard/stock-levels-chart"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertCircle, DollarSign, Package, ShoppingCart } from "lucide-react";
+import { RevenueChart } from "@/components/dashboard/revenue-chart";
+import { CategoryDistribution } from "@/components/dashboard/category-distribution";
+import { TopSellingProducts } from "@/components/dashboard/top-selling-products";
+import { StockLevelsChart } from "@/components/dashboard/stock-levels-chart";
 
 interface DashboardStats {
-  totalProducts: number
-  lowStockAlerts: number
-  pendingInvoices: number
-  totalRevenue: number
+  totalProducts: number;
+  lowStockAlerts: number;
+  pendingInvoices: number;
+  totalRevenue: number;
 }
 
 export default function Dashboard() {
-  const router = useRouter()
+  const router = useRouter();
   const [stats, setStats] = useState<DashboardStats>({
     totalProducts: 0,
     lowStockAlerts: 0,
     pendingInvoices: 0,
     totalRevenue: 0,
-  })
-  const [loading, setLoading] = useState(true)
+  });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchDashboardStats = async () => {
       try {
-        const response = await fetch("/api/dashboard/stats")
+        const response = await fetch("/api/dashboard/stats");
         if (response.ok) {
-          const data = await response.json()
-          setStats(data)
+          const data = await response.json();
+          setStats(data);
         }
       } catch (error) {
-        console.error("Error fetching dashboard stats:", error)
+        console.error("Error fetching dashboard stats:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchDashboardStats()
-  }, [])
+    fetchDashboardStats();
+  }, []);
 
   useEffect(() => {
     // Redirect to dashboard immediately
-    router.replace("/dashboard")
-  }, [router])
+    router.replace("/dashboard");
+  }, [router]);
 
   if (loading) {
     return (
@@ -59,7 +59,7 @@ export default function Dashboard() {
           <div className="text-lg">Loading dashboard...</div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -71,45 +71,55 @@ export default function Dashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">
+              Total Products
+            </CardTitle>
+            <Package className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalProducts}</div>
-            <p className="text-xs text-muted-foreground">Active products in inventory</p>
+            <p className="text-xs text-primary">Active products in inventory</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Low Stock Alerts</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Low Stock Alerts
+            </CardTitle>
             <AlertCircle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.lowStockAlerts}</div>
-            <p className="text-xs text-muted-foreground">Products with quantity &lt; 10</p>
+            <p className="text-xs text-primary">
+              Products with quantity &lt; 10
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Invoices</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">
+              Pending Invoices
+            </CardTitle>
+            <ShoppingCart className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.pendingInvoices}</div>
-            <p className="text-xs text-muted-foreground">Unpaid client invoices</p>
+            <p className="text-xs text-primary">Unpaid client invoices</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${stats.totalRevenue.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">From paid invoices</p>
+            <div className="text-2xl font-bold">
+              ${stats.totalRevenue.toFixed(2)}
+            </div>
+            <p className="text-xs text-primary">From paid invoices</p>
           </CardContent>
         </Card>
       </div>
@@ -154,5 +164,5 @@ export default function Dashboard() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

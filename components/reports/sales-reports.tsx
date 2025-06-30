@@ -76,28 +76,44 @@ export default function SalesReports({ dateRange }: SalesReportsProps) {
 
   const handleExportCSV = async () => {
     try {
+      if (!salesData) {
+        console.error("No sales data available for export");
+        return;
+      }
+
       const startDate = dateRange.from.toISOString().split("T")[0];
       const endDate = dateRange.to.toISOString().split("T")[0];
 
       // Create CSV data
       const csvData = [
         ["Metric", "Value"],
-        ["Total Revenue", salesData?.totalRevenue || 0],
-        ["Total Orders", salesData?.totalOrders || 0],
-        ["Average Order Value", salesData?.avgOrderValue || 0],
-        ["Revenue Growth %", salesData?.revenueGrowth || 0],
+        ["Total Revenue", `$${salesData.totalRevenue.toLocaleString()}`],
+        ["Total Orders", salesData.totalOrders.toString()],
+        ["Average Order Value", `$${salesData.avgOrderValue.toFixed(2)}`],
+        ["Revenue Growth %", `${salesData.revenueGrowth?.toFixed(1) || 0}%`],
         ["Period", `${startDate} to ${endDate}`],
+        ["Generated At", new Date().toLocaleString()],
       ];
 
-      const csvContent = csvData.map((row) => row.join(",")).join("\n");
-      const blob = new Blob([csvContent], { type: "text/csv" });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `sales-report-${format(new Date(), "yyyy-MM-dd")}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
+      const csvContent = csvData
+        .map((row) => row.map((field) => `"${field}"`).join(","))
+        .join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute(
+        "download",
+        `sales-report-${format(new Date(), "yyyy-MM-dd")}.csv`
+      );
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      console.log("Sales report exported successfully");
     } catch (error) {
       console.error("Error exporting CSV:", error);
     }
