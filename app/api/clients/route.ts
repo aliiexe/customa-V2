@@ -62,7 +62,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, address, email, phoneNumber, iban } = body;
+    const { name, address, email, phoneNumber, iban, rib } = body;
 
     if (!name || !address || !email || !phoneNumber) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -79,9 +79,9 @@ export async function POST(request: Request) {
     }
 
     const result = await query(
-      `INSERT INTO clients (name, address, email, phoneNumber, iban) 
-       VALUES (?, ?, ?, ?, ?)`,
-      [name, address, email, phoneNumber, iban || null]
+      `INSERT INTO clients (name, address, email, phoneNumber, iban, rib) 
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [name, address, email, phoneNumber, iban || null, rib || null]
     );
 
     return NextResponse.json(

@@ -54,15 +54,38 @@ export async function GET(request: Request) {
 
     const products = await query(sql, params);
 
-    // Format the results
+    // For each product, fetch expectedEntry and expectedRelease
+    const getExpectedEntry = async (productId: number) => {
+      const result = await query(
+        `SELECT SUM(sii.quantity) as total
+         FROM supplier_invoice_items sii
+         JOIN supplier_invoices si ON sii.invoiceId = si.id
+         WHERE sii.productId = ? AND si.delivery_status IN ('IN_PROCESS', 'SENDING')`,
+        [productId]
+      ) as any[];
+      return result && result[0] && result[0].total ? Number(result[0].total) : 0;
+    };
+    const getExpectedRelease = async (productId: number) => {
+      const result = await query(
+        `SELECT SUM(cii.quantity) as total
+         FROM client_invoice_items cii
+         JOIN client_invoices ci ON cii.invoiceId = ci.id
+         WHERE cii.productId = ? AND ci.delivery_status IN ('IN_PROCESS', 'SENDING')`,
+        [productId]
+      ) as any[];
+      return result && result[0] && result[0].total ? Number(result[0].total) : 0;
+    };
+
     const formattedProducts = Array.isArray(products)
-      ? products.map((product: any) => ({
+      ? await Promise.all(products.map(async (product: any) => ({
           ...product,
           supplierPrice: Number(product.supplierPrice || 0),
           sellingPrice: Number(product.sellingPrice || 0),
           stockQuantity: Number(product.stockQuantity || 0),
           provisionalStock: Number(product.provisionalStock || 0),
-        }))
+          expectedEntry: await getExpectedEntry(product.id),
+          expectedRelease: await getExpectedRelease(product.id),
+        })))
       : [];
 
     return NextResponse.json(formattedProducts);

@@ -1,17 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import SupplierForm from "@/components/suppliers/supplier-form";
 import { Building2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
-export default function EditSupplierPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default function EditSupplierPage() {
+  const params = useParams();
   const router = useRouter();
   const [supplier, setSupplier] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,7 +17,8 @@ export default function EditSupplierPage({
   useEffect(() => {
     const fetchSupplier = async () => {
       try {
-        const response = await fetch(`/api/suppliers/${params.id}`);
+        const id = Array.isArray(params.id) ? params.id[0] : params.id;
+        const response = await fetch(`/api/suppliers/${id}`);
         if (response.ok) {
           const data = await response.json();
           setSupplier(data);
@@ -37,7 +35,7 @@ export default function EditSupplierPage({
       }
     };
 
-    fetchSupplier();
+    if (params.id) fetchSupplier();
   }, [params.id]);
 
   if (loading) {
@@ -68,5 +66,6 @@ export default function EditSupplierPage({
     );
   }
 
-  return <SupplierForm supplierId={params.id} initialData={supplier} />;
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+  return <SupplierForm supplierId={id} initialData={supplier} />;
 }

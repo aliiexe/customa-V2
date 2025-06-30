@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 
 // Get a single supplier with stats
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, context: { params: { id: string } }) {
   try {
-    const supplierId = params.id;
+    const supplierId = context.params.id;
 
     // Per-supplier stats
     const supplierQuery = `
@@ -43,7 +43,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
       averageDeliveryTime: supplier.averageDeliveryTime ? Number(supplier.averageDeliveryTime).toFixed(1) : null,
     });
   } catch (error) {
-    console.error(`Error fetching supplier ${params.id}:`, error);
+    console.error("Error fetching supplier:", error);
     return NextResponse.json({ error: "Failed to fetch supplier" }, { status: 500 });
   }
 }
@@ -52,7 +52,11 @@ export async function GET(request: Request, { params }: { params: { id: string }
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   try {
     const id = params.id;
-    const supplier = await request.json();
+    const { name, contactName, address, email, phoneNumber, website, iban, rib } = await request.json();
+
+    if (!name || !contactName || !address || !email || !phoneNumber) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
 
     const sql = `
       UPDATE suppliers
@@ -63,17 +67,21 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         email = ?,
         phoneNumber = ?,
         website = ?,
+        iban = ?,
+        rib = ?,
         updatedAt = CURRENT_TIMESTAMP
       WHERE id = ?
     `;
 
     const queryParams = [
-      supplier.name,
-      supplier.contactName,
-      supplier.address,
-      supplier.email,
-      supplier.phoneNumber,
-      supplier.website,
+      name,
+      contactName,
+      address,
+      email,
+      phoneNumber,
+      website,
+      iban || null,
+      rib || null,
       id
     ];
 

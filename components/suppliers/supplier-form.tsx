@@ -24,6 +24,8 @@ export default function SupplierForm({ supplierId, initialData }: SupplierFormPr
     email: "",
     phoneNumber: "",
     website: "",
+    iban: "",
+    rib: "",
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -37,6 +39,8 @@ export default function SupplierForm({ supplierId, initialData }: SupplierFormPr
         email: initialData.email || "",
         phoneNumber: initialData.phoneNumber || "",
         website: initialData.website || "",
+        iban: initialData.iban || "",
+        rib: initialData.rib || "",
       });
     }
   }, [initialData]);
@@ -254,6 +258,35 @@ export default function SupplierForm({ supplierId, initialData }: SupplierFormPr
                   className="mt-1 border-gray-300 focus:border-primary"
                   placeholder="Enter website URL (optional)"
                 />
+              </div>
+
+              <div className="grid gap-6 md:grid-cols-2">
+                <div>
+                  <Label htmlFor="iban" className="text-sm font-medium text-gray-700">
+                    IBAN
+                  </Label>
+                  <Input
+                    id="iban"
+                    type="text"
+                    value={formData.iban}
+                    onChange={(e) => handleChange("iban", e.target.value)}
+                    className="mt-1 border-gray-300 focus:border-primary"
+                    placeholder="Enter IBAN (optional)"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="rib" className="text-sm font-medium text-gray-700">
+                    RIB
+                  </Label>
+                  <Input
+                    id="rib"
+                    type="text"
+                    value={formData.rib}
+                    onChange={(e) => handleChange("rib", e.target.value)}
+                    className="mt-1 border-gray-300 focus:border-primary"
+                    placeholder="Enter RIB (optional)"
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>

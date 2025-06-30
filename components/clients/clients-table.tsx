@@ -51,6 +51,7 @@ interface Client {
   email: string;
   phoneNumber: string;
   iban?: string;
+  rib?: string;
   createdAt: string;
   updatedAt?: string;
   totalSpent: number;
@@ -383,6 +384,8 @@ export default function ClientsTable() {
                 <TableHead className="text-primary font-semibold">
                   Status
                 </TableHead>
+                <TableHead className="text-primary font-semibold">IBAN</TableHead>
+                <TableHead className="text-primary font-semibold">RIB</TableHead>
                 <TableHead className="text-center text-primary font-semibold">
                   Actions
                 </TableHead>
@@ -473,6 +476,8 @@ export default function ClientsTable() {
                       </div>
                     </TableCell>
                     <TableCell>{getClientStatusBadge(client)}</TableCell>
+                    <TableCell>{client.iban || '-'}</TableCell>
+                    <TableCell>{client.rib || '-'}</TableCell>
                     <TableCell>
                       <div className="flex justify-center space-x-2">
                         <Button

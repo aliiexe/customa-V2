@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, use } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -8,6 +8,10 @@ import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 import { ArrowLeft, DollarSign, Calendar, Truck, User, Hash, FileText, CheckCircle2 } from "lucide-react"
 import Link from "next/link"
+import InvoicePdfView from '@/components/pdf/InvoicePdfView'
+import { createPortal } from "react-dom"
+import { useParams } from "next/navigation"
+import { exportToPdf } from "@/lib/pdf-export"
 
 // Types
 interface InvoiceItem {
@@ -31,11 +35,14 @@ interface Invoice {
   items: InvoiceItem[]
 }
 
-export default function ClientInvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: invoiceId } = use(params)
+export default function ClientInvoiceDetailPage() {
+  const params = useParams()
+  const invoiceId = Array.isArray(params.id) ? params.id[0] : params.id
   const [invoice, setInvoice] = useState<Invoice | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isUpdating, setIsUpdating] = useState(false)
+  const [showPdfView, setShowPdfView] = useState(false)
+  const pdfDivRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const fetchInvoice = async () => {
@@ -51,7 +58,7 @@ export default function ClientInvoiceDetailPage({ params }: { params: Promise<{ 
         setIsLoading(false)
       }
     }
-    fetchInvoice()
+    if (invoiceId) fetchInvoice()
   }, [invoiceId])
 
   const getPaymentStatusBadge = (status: "PAID" | "UNPAID") => {
@@ -91,6 +98,16 @@ export default function ClientInvoiceDetailPage({ params }: { params: Promise<{ 
     } finally {
       setIsUpdating(false)
     }
+  }
+
+  const handleDownloadPdf = () => {
+    setShowPdfView(true)
+    setTimeout(async () => {
+      if (pdfDivRef.current && invoice) {
+        await exportToPdf(pdfDivRef.current, `Invoice-${invoice.id}.pdf`)
+        setShowPdfView(false)
+      }
+    }, 100)
   }
 
   if (isLoading) {
@@ -244,6 +261,17 @@ export default function ClientInvoiceDetailPage({ params }: { params: Promise<{ 
                 )}
               </CardContent>
             </Card>
+
+            <Card className="shadow-sm border-gray-200">
+              <CardHeader className="bg-gray-50 border-b border-gray-100">
+                <CardTitle className="text-gray-700">Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-3">
+                <Button variant="outline" onClick={handleDownloadPdf}>
+                  Download as PDF
+                </Button>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Invoice Items */}
@@ -298,6 +326,14 @@ export default function ClientInvoiceDetailPage({ params }: { params: Promise<{ 
           </div>
         </div>
       </div>
+      {showPdfView &&
+        createPortal(
+          <div ref={pdfDivRef} style={{ position: "absolute", left: "-9999px", top: 0, zIndex: -1 }}>
+            <InvoicePdfView invoice={invoice} />
+          </div>,
+          document.body
+        )
+      }
     </div>
   )
 }

@@ -49,6 +49,8 @@ interface Product {
   supplierName?: string;
   createdAt: string;
   updatedAt?: string;
+  expectedEntry?: number;
+  expectedRelease?: number;
 }
 
 interface ProductsTableProps {
@@ -326,19 +328,9 @@ export default function ProductsTable({ filters }: ProductsTableProps) {
                 <TableHead className="text-primary font-semibold">
                   Category & Supplier
                 </TableHead>
-                <TableHead
-                  className="cursor-pointer text-center text-primary font-semibold hover:text-primary/80 transition-colors"
-                  onClick={() => handleSort("stockQuantity")}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    Stock
-                    {sortColumn === "stockQuantity" && (
-                      <span className="text-xs">
-                        {sortDirection === "asc" ? "↑" : "↓"}
-                      </span>
-                    )}
-                  </div>
-                </TableHead>
+                <TableHead className="text-primary font-semibold text-center">Real Stock</TableHead>
+                <TableHead className="text-primary font-semibold text-center">Expected Entry</TableHead>
+                <TableHead className="text-primary font-semibold text-center">Expected Release</TableHead>
                 <TableHead
                   className="cursor-pointer text-right text-primary font-semibold hover:text-primary/80 transition-colors"
                   onClick={() => handleSort("sellingPrice")}
@@ -428,34 +420,21 @@ export default function ProductsTable({ filters }: ProductsTableProps) {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-center">
-                      <div className="space-y-1">
-                        <div className="font-medium text-gray-900">
-                          {product.stockQuantity}
-                          {product.provisionalStock && product.provisionalStock > 0 && (
-                            <span className="text-blue-600 ml-1 text-xs">(+{product.provisionalStock} on order)</span>
-                          )}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          Actual: {product.stockQuantity}
-                          {product.provisionalStock > 0 && (
-                            <> • Expected: {product.stockQuantity + product.provisionalStock}</>
-                          )}
-                        </div>
-                      </div>
-                    </TableCell>
+                    <TableCell className="text-center font-medium text-gray-900">{product.stockQuantity}</TableCell>
+                    <TableCell className="text-center font-medium text-blue-700">{product.expectedEntry ?? 0}</TableCell>
+                    <TableCell className="text-center font-medium text-amber-700">{product.expectedRelease ?? 0}</TableCell>
                     <TableCell className="text-right">
                       <div className="space-y-1">
                         <div className="flex items-center justify-end gap-1 font-medium text-gray-900">
                           <DollarSign className="h-4 w-4 text-gray-400" />
-                          {product.sellingPrice.toFixed(2)}
+                          {Number(product.sellingPrice).toFixed(2)}
                         </div>
                         <div className="text-xs text-gray-500">
-                          Cost: ${product.supplierPrice.toFixed(2)}
+                          Cost: ${Number(product.supplierPrice).toFixed(2)}
                         </div>
                         <div className="text-xs">
                           <span className={`font-medium ${calculateProfitMargin(product) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {calculateProfitMargin(product).toFixed(1)}% margin
+                            {Number(calculateProfitMargin(product)).toFixed(1)}% margin
                           </span>
                         </div>
                       </div>

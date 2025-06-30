@@ -53,6 +53,8 @@ interface Supplier {
   email: string;
   phoneNumber: string;
   website?: string;
+  iban?: string;
+  rib?: string;
   createdAt: string;
   updatedAt?: string;
   productCount: number;
@@ -407,6 +409,8 @@ export default function SuppliersTable() {
                   </div>
                 </TableHead>
                 <TableHead className="text-primary font-semibold">Status</TableHead>
+                <TableHead className="text-primary font-semibold">IBAN</TableHead>
+                <TableHead className="text-primary font-semibold">RIB</TableHead>
                 <TableHead className="text-center text-primary font-semibold">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -503,6 +507,8 @@ export default function SuppliersTable() {
                     <TableCell>
                       {getSupplierStatusBadge(supplier)}
                     </TableCell>
+                    <TableCell>{supplier.iban || '-'}</TableCell>
+                    <TableCell>{supplier.rib || '-'}</TableCell>
                     <TableCell>
                       <div className="flex justify-center space-x-2">
                         <Button

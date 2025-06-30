@@ -53,6 +53,8 @@ export interface Supplier {
   contactName: string
   address: string
   email: string
+  rib?: string
+  iban: string
   phoneNumber: string
   website?: string
   createdAt: Date
@@ -66,6 +68,7 @@ export interface Client {
   email: string
   phoneNumber: string
   iban: string
+  rib?: string
   createdAt: Date
   updatedAt: Date
 }

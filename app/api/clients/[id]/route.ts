@@ -74,7 +74,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   try {
     const clientId = params.id;
-    const { name, address, email, phoneNumber, iban } = await request.json();
+    const { name, address, email, phoneNumber, iban, rib } = await request.json();
 
     if (!name || !address || !email || !phoneNumber) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -92,9 +92,9 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 
     const result = await query(
       `UPDATE clients 
-       SET name = ?, address = ?, email = ?, phoneNumber = ?, iban = ?, updatedAt = CURRENT_TIMESTAMP
+       SET name = ?, address = ?, email = ?, phoneNumber = ?, iban = ?, rib = ?, updatedAt = CURRENT_TIMESTAMP
        WHERE id = ?`,
-      [name, address, email, phoneNumber, iban || null, clientId]
+      [name, address, email, phoneNumber, iban || null, rib || null, clientId]
     );
 
     if ((result as any).affectedRows === 0) {

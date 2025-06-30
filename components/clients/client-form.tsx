@@ -36,6 +36,7 @@ const formSchema = z.object({
   email: z.string().email("Email must be a valid email address"),
   phoneNumber: z.string().min(6, "Phone number must be at least 6 characters"),
   iban: z.string().optional(),
+  rib: z.string().optional(),
 });
 
 type ClientFormValues = z.infer<typeof formSchema>;
@@ -55,6 +56,7 @@ export default function ClientForm({ clientId }: { clientId: number | null }) {
       email: "",
       phoneNumber: "",
       iban: "",
+      rib: "",
     },
   });
 
@@ -75,6 +77,7 @@ export default function ClientForm({ clientId }: { clientId: number | null }) {
               email: client.email,
               phoneNumber: client.phoneNumber,
               iban: client.iban || "",
+              rib: client.rib || "",
             });
 
             // Fetch client stats
@@ -317,6 +320,31 @@ export default function ClientForm({ clientId }: { clientId: number | null }) {
                         </FormControl>
                         <FormDescription className="text-gray-500">
                           International bank account number for payments
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="rib"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-700 font-medium flex items-center gap-1">
+                          <CreditCard className="h-4 w-4" />
+                          RIB (Optional)
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="RIB number"
+                            disabled={isLoading}
+                            className="h-11 border-gray-300 focus:border-primary focus:ring-primary/20"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription className="text-gray-500">
+                          Bank account identifier for French payments
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
