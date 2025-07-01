@@ -10,9 +10,59 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from "@/lib/theme-provider";
+import { useUser } from "@clerk/nextjs";
+import React from "react";
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
+  const { isLoaded, user } = useUser();
+  const [dbUser, setDbUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
+
+  React.useEffect(() => {
+    async function fetchDbUser() {
+      setLoading(true);
+      setError("");
+      try {
+        const res = await fetch("/api/users/me");
+        if (!res.ok) {
+          setError("Not authorized or user not found.");
+          setDbUser(null);
+        } else {
+          setDbUser(await res.json());
+        }
+      } catch (e) {
+        setError("Failed to fetch user info.");
+      } finally {
+        setLoading(false);
+      }
+    }
+    if (isLoaded) fetchDbUser();
+  }, [isLoaded]);
+
+  async function handleUpdate(e: React.FormEvent) {
+    e.preventDefault();
+    if (!dbUser) return;
+    setSaving(true);
+    setSuccess(false);
+    setError("");
+    try {
+      const res = await fetch("/api/users/" + dbUser.id, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dbUser),
+      });
+      if (!res.ok) throw new Error("Update failed");
+      setSuccess(true);
+    } catch (e) {
+      setError("Failed to update user info.");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   // Theme options
   const themes = [
@@ -77,9 +127,81 @@ export default function SettingsPage() {
               <CardDescription>Manage your account preferences</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
-              <p className="text-sm text-gray-500">
-                Account settings coming soon
-              </p>
+              {loading ? (
+                <p>Loading...</p>
+              ) : error ? (
+                <div className="text-red-600">{error}</div>
+              ) : dbUser ? (
+                <form onSubmit={handleUpdate} className="space-y-4 max-w-md">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">First Name</label>
+                    <input
+                      type="text"
+                      className="w-full border rounded px-3 py-2"
+                      value={dbUser.firstname}
+                      onChange={e => setDbUser({ ...dbUser, firstname: e.target.value })}
+                      disabled={saving}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Last Name</label>
+                    <input
+                      type="text"
+                      className="w-full border rounded px-3 py-2"
+                      value={dbUser.lastname}
+                      onChange={e => setDbUser({ ...dbUser, lastname: e.target.value })}
+                      disabled={saving}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Email</label>
+                    <input
+                      type="email"
+                      className="w-full border rounded px-3 py-2 bg-gray-100"
+                      value={dbUser.email}
+                      disabled
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Phone</label>
+                    <input
+                      type="text"
+                      className="w-full border rounded px-3 py-2"
+                      value={dbUser.phone}
+                      onChange={e => setDbUser({ ...dbUser, phone: e.target.value })}
+                      disabled={saving}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Address</label>
+                    <input
+                      type="text"
+                      className="w-full border rounded px-3 py-2"
+                      value={dbUser.address}
+                      onChange={e => setDbUser({ ...dbUser, address: e.target.value })}
+                      disabled={saving}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">City</label>
+                    <input
+                      type="text"
+                      className="w-full border rounded px-3 py-2"
+                      value={dbUser.city}
+                      onChange={e => setDbUser({ ...dbUser, city: e.target.value })}
+                      disabled={saving}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="bg-primary text-white px-4 py-2 rounded mt-2"
+                    disabled={saving}
+                  >
+                    {saving ? "Saving..." : "Update"}
+                  </button>
+                  {success && <div className="text-green-600 mt-2">Updated!</div>}
+                </form>
+              ) : null}
             </CardContent>
           </Card>
         </TabsContent>

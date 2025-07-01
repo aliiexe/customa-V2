@@ -2,7 +2,8 @@ import type React from "react"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/lib/theme-provider"
-import Sidebar from "@/components/sidebar"
+import { ClerkProvider } from "@clerk/nextjs"
+import LayoutShell from "@/components/LayoutShell"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -18,15 +19,14 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <div className="flex h-screen overflow-hidden">
-            <Sidebar />
-            <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
-          </div>
-        </ThemeProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body className={inter.className}>
+          <ThemeProvider>
+            <LayoutShell>{children}</LayoutShell>
+          </ThemeProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   )
 }
