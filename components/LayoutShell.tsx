@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 
 export default function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  if (pathname === "/not-authorized" || pathname === "/login") {
+  if (pathname === "/not-authorized" || pathname === "/login" || pathname === "/sign-up") {
     return <>{children}</>;
   }
   return (
