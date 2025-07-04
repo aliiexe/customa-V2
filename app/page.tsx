@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useUserRoles } from "@/hooks/use-user-roles";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle, DollarSign, Package, ShoppingCart } from "lucide-react";
 import { RevenueChart } from "@/components/dashboard/revenue-chart";
@@ -18,6 +19,7 @@ interface DashboardStats {
 
 export default function Dashboard() {
   const router = useRouter();
+  const { roles, loading: rolesLoading } = useUserRoles();
   const [stats, setStats] = useState<DashboardStats>({
     totalProducts: 0,
     lowStockAlerts: 0,
@@ -45,18 +47,33 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    // Redirect to dashboard immediately
-    router.replace("/dashboard");
-  }, [router]);
+    if (rolesLoading) return; // Wait for roles to load
 
-  if (loading) {
+    // Check user roles and redirect accordingly
+    const userRoleNames = roles.map(r => r.roleName.toLowerCase());
+    const isAdminOrManager = userRoleNames.includes("admin") || userRoleNames.includes("manager");
+    const isSales = userRoleNames.includes("sales");
+
+    if (isSales) {
+      // Sales users should go to products page
+      router.replace("/products");
+    } else if (isAdminOrManager) {
+      // Admin/Manager users can go to dashboard
+      router.replace("/dashboard");
+    } else {
+      // Default fallback - if no specific role, go to products
+      router.replace("/products");
+    }
+  }, [router, roles, rolesLoading]);
+
+  if (rolesLoading || loading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Loading...</h1>
         </div>
         <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Loading dashboard...</div>
+          <div className="text-lg">Loading...</div>
         </div>
       </div>
     );
@@ -117,7 +134,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${stats.totalRevenue.toFixed(2)}
+              ${Number(stats.totalRevenue).toFixed(2)}
             </div>
             <p className="text-xs text-primary">From paid invoices</p>
           </CardContent>
