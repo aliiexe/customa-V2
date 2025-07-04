@@ -89,14 +89,14 @@ const routes = [
 const routeAccess: { [key: string]: string[] } = {
   // Only these roles can see these routes
   "/dashboard": ["admin", "manager"],
-  "/products": ["admin", "manager"],
+  "/products": ["admin", "manager", "sales"],
   "/suppliers": ["admin", "manager", "sales"],
   "/clients": ["admin", "manager", "sales"],
   "/quotes/client": ["admin", "manager", "sales"],
   "/quotes/supplier": ["admin", "manager", "sales"],
   "/invoices/client": ["admin", "manager", "sales"],
   "/invoices/supplier": ["admin", "manager", "sales"],
-  "/categories": ["admin", "manager"],
+  "/categories": ["admin", "manager", "sales"],
   "/users": ["admin", "manager"],
   "/roles": ["admin", "manager"],
   "/reports": ["admin", "manager"],
