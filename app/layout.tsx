@@ -8,9 +8,8 @@ import LayoutShell from "@/components/LayoutShell"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
-  title: "Product Management Dashboard",
-  description: "A comprehensive product management dashboard",
-    generator: 'v0.dev'
+  title: "Customa",
+  description: "A Dashboard made you specially for your needs!"
 }
 
 export default function RootLayout({

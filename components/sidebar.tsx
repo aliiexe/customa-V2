@@ -100,7 +100,7 @@ const routeAccess: { [key: string]: string[] } = {
   "/users": ["admin", "manager"],
   "/roles": ["admin", "manager"],
   "/reports": ["admin", "manager"],
-  "/settings": ["admin", "manager"],
+  "/settings": ["admin", "manager", "sales"],
 };
 
 export default function Sidebar() {
