@@ -2,7 +2,7 @@ import { clerkMiddleware } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
 export default clerkMiddleware(async (auth, req) => {
-  // Allow public routes, Clerk assets, and /api/users/me
+  // Allow public routes, Clerk assets, and auth flows
   const url = req.nextUrl.pathname;
   if (
     url.startsWith('/login') ||
@@ -11,7 +11,6 @@ export default clerkMiddleware(async (auth, req) => {
     url.startsWith('/clerk') ||
     url.startsWith('/v1') ||
     url.startsWith('/favicon.ico') ||
-    url.startsWith('/api/users/me') ||
     url.startsWith('/not-authorized')
   ) {
     return NextResponse.next();
@@ -24,14 +23,23 @@ export default clerkMiddleware(async (auth, req) => {
     return NextResponse.next();
   }
 
-  // Check if user exists in DB
-  const meRes = await fetch(`${req.nextUrl.origin}/api/users/me`, {
-    headers: { Cookie: req.headers.get('cookie') || '' },
-  });
-  if (meRes.status === 403) {
-    // User not in DB, redirect to not-authorized page
-    return NextResponse.redirect(new URL('/not-authorized', req.url));
+  // For protected routes, check if user exists in DB
+  if (!url.startsWith('/api/users/me')) {
+    try {
+      const meRes = await fetch(`${req.nextUrl.origin}/api/users/me`, {
+        headers: { Cookie: req.headers.get('cookie') || '' },
+      });
+      if (meRes.status === 403) {
+        // User not in DB, redirect to not-authorized page
+        return NextResponse.redirect(new URL('/not-authorized', req.url));
+      }
+    } catch (error) {
+      console.error('Error checking user existence:', error);
+      // If there's an error, allow the request to continue
+      return NextResponse.next();
+    }
   }
+  
   return NextResponse.next();
 });
 
