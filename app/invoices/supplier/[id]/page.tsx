@@ -394,10 +394,10 @@ export default function SupplierInvoicePage() {
                             {item.quantity}
                           </TableCell>
                           <TableCell className="text-right text-gray-900">
-                            ${Number(item.unitPrice || 0).toFixed(2)}
+                            {formatCurrency(Number(item.unitPrice || 0))}
                           </TableCell>
                           <TableCell className="text-right font-semibold text-gray-900">
-                            ${Number(item.totalPrice || 0).toFixed(2)}
+                            {formatCurrency(Number(item.totalPrice || 0))}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -410,7 +410,7 @@ export default function SupplierInvoicePage() {
                           Total Amount:
                         </TableCell>
                         <TableCell className="text-right font-bold text-xl text-primary">
-                          ${Number(invoice.totalAmount || 0).toFixed(2)}
+                          {formatCurrency(Number(invoice.totalAmount || 0))}
                         </TableCell>
                       </TableRow>
                     </TableBody>

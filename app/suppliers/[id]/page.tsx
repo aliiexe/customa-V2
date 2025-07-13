@@ -275,7 +275,7 @@ export default function SupplierDetailsPage({
                     Total Spent
                   </span>
                   <span className="font-bold text-xl text-green-600">
-                    ${Number(supplier.totalSpent || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {formatCurrency(Number(supplier.totalSpent || 0))}
                   </span>
                 </div>
                 
@@ -286,7 +286,7 @@ export default function SupplierDetailsPage({
                       Outstanding
                     </span>
                     <span className="font-bold text-red-600">
-                      ${Number(supplier.unpaidAmount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {formatCurrency(Number(supplier.unpaidAmount || 0))}
                     </span>
                   </div>
                 )}

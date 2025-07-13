@@ -385,10 +385,10 @@ export default function SupplierQuoteDetailPage({ params }: { params: Promise<{ 
                           <TableCell className="text-gray-600">{item.productReference}</TableCell>
                           <TableCell className="text-right text-gray-900">{item.quantity}</TableCell>
                           <TableCell className="text-right text-gray-900">
-                            ${Number(item.unitPrice).toFixed(2)}
+                            {formatCurrency(Number(item.unitPrice))}
                           </TableCell>
                           <TableCell className="text-right font-semibold text-gray-900">
-                            ${Number(item.totalPrice).toFixed(2)}
+                            {formatCurrency(Number(item.totalPrice))}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -398,7 +398,7 @@ export default function SupplierQuoteDetailPage({ params }: { params: Promise<{ 
                           Total Amount:
                         </TableCell>
                         <TableCell className="text-right font-bold text-xl text-primary">
-                          ${Number(quote.totalAmount).toFixed(2)}
+                          {formatCurrency(Number(quote.totalAmount))}
                         </TableCell>
                       </TableRow>
                     </TableBody>

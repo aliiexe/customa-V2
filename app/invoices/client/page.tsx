@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { PlusCircle } from "lucide-react"
 import ClientInvoicesTable from "@/components/invoices/client-invoices-table"
 import { InvoiceFilters } from "@/components/invoices/invoice-filters"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 interface Invoice {
   id: number
@@ -23,6 +24,7 @@ interface Client {
 }
 
 export default function ClientInvoicesPage() {
+  const router = useRouter()
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [clients, setClients] = useState<Client[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -34,40 +36,55 @@ export default function ClientInvoicesPage() {
     endDate: "",
   })
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true)
-      try {
-        // Fetch clients for the filter dropdown
-        const clientsResponse = await fetch("/api/clients")
-        if (clientsResponse.ok) {
-          const clientsData = await clientsResponse.json()
-          setClients(clientsData)
-        }
+  const fetchData = useCallback(async () => {
+    setIsLoading(true)
+    try {
+      // Fetch clients for the filter dropdown
+      const clientsResponse = await fetch("/api/clients")
+      if (clientsResponse.ok) {
+        const clientsData = await clientsResponse.json()
+        setClients(clientsData)
+      }
 
-        // Fetch invoices based on filters
-        const params = new URLSearchParams()
-        if (filters.clientId && filters.clientId !== 'all') params.append("clientId", filters.clientId)
-        if (filters.payment_status && filters.payment_status !== 'all') params.append("payment_status", filters.payment_status)
-        if (filters.delivery_status && filters.delivery_status !== 'all') params.append("delivery_status", filters.delivery_status)
-        if (filters.startDate) params.append("startDate", filters.startDate)
-        if (filters.endDate) params.append("endDate", filters.endDate)
-        
-        const response = await fetch(`/api/invoices/client?${params.toString()}`)
-        if (response.ok) {
-          const data = await response.json()
-          setInvoices(data)
-        } else {
-          console.error("Failed to fetch invoices")
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error)
-      } finally {
-        setIsLoading(false)
+      // Fetch invoices based on filters
+      const params = new URLSearchParams()
+      if (filters.clientId && filters.clientId !== 'all') params.append("clientId", filters.clientId)
+      if (filters.payment_status && filters.payment_status !== 'all') params.append("payment_status", filters.payment_status)
+      if (filters.delivery_status && filters.delivery_status !== 'all') params.append("delivery_status", filters.delivery_status)
+      if (filters.startDate) params.append("startDate", filters.startDate)
+      if (filters.endDate) params.append("endDate", filters.endDate)
+      
+      const response = await fetch(`/api/invoices/client?${params.toString()}`)
+      if (response.ok) {
+        const data = await response.json()
+        setInvoices(data)
+      } else {
+        console.error("Failed to fetch invoices")
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [filters])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  // Refresh data when the page becomes visible (user returns from detail page)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchData()
       }
     }
-    fetchData()
-  }, [filters])
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [fetchData])
   
   const handleFilterChange = (key: string, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }))

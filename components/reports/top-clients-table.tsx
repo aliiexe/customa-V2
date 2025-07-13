@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCurrency } from "@/lib/currency-provider";
 import { format } from "date-fns";
 import Link from "next/link";
 
@@ -221,11 +222,7 @@ function ClientContributionsTable() {
           <TableRow key={client.id}>
             <TableCell>{client.name}</TableCell>
             <TableCell className="text-right">
-              {client.revenue.toLocaleString("en-US", {
-                style: "currency",
-                currency: "USD",
-                minimumFractionDigits: 2,
-              })}
+              {formatCurrency(client.revenue)}
             </TableCell>
             <TableCell className="text-right">
               <div className="flex items-center justify-end gap-2">

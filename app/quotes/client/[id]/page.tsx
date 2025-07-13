@@ -518,10 +518,10 @@ export default function QuoteDetailPage({
                             {item.quantity}
                           </TableCell>
                           <TableCell className="text-right text-slate-900">
-                            ${Number(item.unitPrice).toFixed(2)}
+                            {formatCurrency(Number(item.unitPrice))}
                           </TableCell>
                           <TableCell className="text-right font-semibold text-slate-900">
-                            ${Number(item.totalPrice).toFixed(2)}
+                            {formatCurrency(Number(item.totalPrice))}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -534,7 +534,7 @@ export default function QuoteDetailPage({
                           Total Amount:
                         </TableCell>
                         <TableCell className="text-right font-bold text-xl text-primary">
-                          ${Number(quote.totalAmount).toFixed(2)}
+                          {formatCurrency(Number(quote.totalAmount))}
                         </TableCell>
                       </TableRow>
                     </TableBody>

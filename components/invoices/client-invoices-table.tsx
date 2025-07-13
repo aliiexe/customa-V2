@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Edit, Eye, Download, CheckCircle, MoreHorizontal } from "lucide-react"
@@ -9,6 +9,7 @@ import Link from "next/link"
 import { format } from "date-fns"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useCurrency } from "@/lib/currency-provider"
 
 interface Invoice {
   id: number
@@ -25,8 +26,14 @@ interface ClientInvoicesTableProps {
 }
 
 export default function ClientInvoicesTable({ invoices: initialInvoices }: ClientInvoicesTableProps) {
+  const { formatCurrency } = useCurrency()
   const [invoices, setInvoices] = useState(initialInvoices)
   const router = useRouter()
+
+  // Update local state when props change
+  useEffect(() => {
+    setInvoices(initialInvoices)
+  }, [initialInvoices])
 
   const getPaymentStatusBadge = (status: "PAID" | "UNPAID") => {
     switch (status) {
@@ -112,7 +119,7 @@ export default function ClientInvoicesTable({ invoices: initialInvoices }: Clien
                   {invoice.clientName}
                 </TableCell>
                 <TableCell className="px-6 py-4 text-right text-gray-700 font-medium">
-                  ${parseFloat(invoice.totalAmount.toString()).toFixed(2)}
+                  {formatCurrency(parseFloat(invoice.totalAmount.toString()))}
                 </TableCell>
                 <TableCell className="px-6 py-4 text-gray-700">
                   {format(new Date(invoice.dateCreated), "MMM dd, yyyy")}

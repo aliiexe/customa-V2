@@ -223,13 +223,13 @@ export default function ProductDetailsPage({
               <div>
                 <div className="text-sm font-medium text-gray-700 mb-1">Supplier Price</div>
                 <div className="text-lg font-semibold text-gray-900">
-                  ${Number(product.supplierPrice || 0).toFixed(2)}
+                  {formatCurrency(Number(product.supplierPrice || 0))}
                 </div>
               </div>
               <div>
                 <div className="text-sm font-medium text-gray-700 mb-1">Selling Price</div>
                 <div className="text-xl font-bold text-primary">
-                  ${Number(product.sellingPrice || 0).toFixed(2)}
+                  {formatCurrency(Number(product.sellingPrice || 0))}
                 </div>
               </div>
               <div className="border-t pt-4">
@@ -241,7 +241,7 @@ export default function ProductDetailsPage({
               <div>
                 <div className="text-sm font-medium text-gray-700 mb-1">Profit per Unit</div>
                 <div className={`font-medium ${(product.sellingPrice - product.supplierPrice) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  ${(product.sellingPrice - product.supplierPrice).toFixed(2)}
+                  {formatCurrency(product.sellingPrice - product.supplierPrice)}
                 </div>
               </div>
               <div className="border-t pt-4">

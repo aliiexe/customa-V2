@@ -9,6 +9,7 @@ import Link from "next/link"
 import { format } from "date-fns"
 import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
+import { useCurrency } from "@/lib/currency-provider"
 
 interface Invoice {
   id: number
@@ -32,6 +33,7 @@ export default function SupplierInvoicesTable({
   isLoading, 
   onInvoicesChange 
 }: SupplierInvoicesTableProps) {
+  const { formatCurrency } = useCurrency()
   const router = useRouter()
   const [sortColumn, setSortColumn] = useState("dateCreated")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
@@ -176,7 +178,7 @@ export default function SupplierInvoicesTable({
                 {invoice.supplierName}
               </TableCell>
               <TableCell className="text-right text-gray-700 font-medium">
-                ${parseFloat(invoice.totalAmount.toString()).toFixed(2)}
+                {formatCurrency(parseFloat(invoice.totalAmount.toString()))}
               </TableCell>
               <TableCell className="text-gray-700">
                 {format(new Date(invoice.dateCreated), "MMM dd, yyyy")}

@@ -177,7 +177,7 @@ export default function ClientDetailsPage({
                       Total Spent
                     </span>
                     <span className="font-bold text-lg text-primary">
-                      ${Number(client.totalSpent || 0).toFixed(2)}
+                      {formatCurrency(Number(client.totalSpent || 0))}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -186,7 +186,7 @@ export default function ClientDetailsPage({
                     </span>
                     {Number(client.unpaidAmount || 0) > 0 ? (
                       <Badge variant="destructive" className="text-lg py-1 px-2">
-                        ${Number(client.unpaidAmount || 0).toFixed(2)}
+                        {formatCurrency(Number(client.unpaidAmount || 0))}
                       </Badge>
                     ) : (
                       <Badge variant="secondary" className="text-lg py-1 px-2 bg-green-100 text-green-800">

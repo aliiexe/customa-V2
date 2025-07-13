@@ -265,7 +265,7 @@ export default function ClientQuotesTable({
                 {quote.clientName}
               </TableCell>
               <TableCell className="text-right text-gray-700">
-                ${parseFloat(quote.totalAmount.toString()).toFixed(2)}
+                {formatCurrency(parseFloat(quote.totalAmount.toString()))}
               </TableCell>
               <TableCell className="text-gray-700">
                 {format(new Date(quote.dateCreated), "MMM dd, yyyy")}

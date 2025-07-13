@@ -44,6 +44,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
+import { useCurrency } from "@/lib/currency-provider";
 
 interface Supplier {
   id: number;
@@ -65,6 +66,7 @@ interface Supplier {
 }
 
 export default function SuppliersTable() {
+  const { formatCurrency } = useCurrency();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [filteredSuppliers, setFilteredSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
@@ -495,11 +497,11 @@ export default function SuppliersTable() {
                       <div>
                         <div className="flex items-center justify-end gap-1 font-medium">
                           <DollarSign className="h-4 w-4 text-gray-400" />
-                          {supplier.totalSpent.toFixed(2)}
+                          {formatCurrency(supplier.totalSpent)}
                         </div>
                         {supplier.unpaidAmount > 0 && (
                           <div className="text-xs text-red-600 mt-1">
-                            ${supplier.unpaidAmount.toFixed(2)} outstanding
+                            {formatCurrency(supplier.unpaidAmount)} outstanding
                           </div>
                         )}
                       </div>
@@ -565,17 +567,11 @@ export default function SuppliersTable() {
                   Total Products: {suppliers.reduce((sum, s) => sum + s.productCount, 0)}
                 </div>
                 <div>
-                  Total Expenses: $
-                  {suppliers
-                    .reduce((sum, s) => sum + s.totalSpent, 0)
-                    .toFixed(2)}
+                  Total Expenses: {formatCurrency(suppliers.reduce((sum, s) => sum + s.totalSpent, 0))}
                 </div>
                 {suppliers.some(s => s.unpaidAmount > 0) && (
                   <div className="text-red-600">
-                    Outstanding: $
-                    {suppliers
-                      .reduce((sum, s) => sum + s.unpaidAmount, 0)
-                      .toFixed(2)}
+                    Outstanding: {formatCurrency(suppliers.reduce((sum, s) => sum + s.unpaidAmount, 0))}
                   </div>
                 )}
               </div>

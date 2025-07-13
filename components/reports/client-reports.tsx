@@ -28,6 +28,7 @@ import { ClientsSpendingChart } from "@/components/reports/clients-spending-char
 import { TopClientsTable } from "@/components/reports/top-clients-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
+import { useCurrency } from "@/lib/currency-provider";
 
 interface ClientData {
   totalClients: number;
@@ -92,11 +93,7 @@ function ClientContributionsTable() {
           <TableRow key={client.id}>
             <TableCell>{client.name}</TableCell>
             <TableCell className="text-right">
-              {client.revenue.toLocaleString("en-US", {
-                style: "currency",
-                currency: "USD",
-                minimumFractionDigits: 2,
-              })}
+              {formatCurrency(client.revenue)}
             </TableCell>
             <TableCell className="text-right">
               <div className="flex items-center justify-end gap-2">
@@ -117,6 +114,7 @@ function ClientContributionsTable() {
 }
 
 export default function ClientReports({ dateRange }: ClientReportsProps) {
+  const { formatCurrency } = useCurrency();
   const [data, setData] = useState<ClientData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -149,13 +147,7 @@ export default function ClientReports({ dateRange }: ClientReportsProps) {
     fetchData();
   }, [dateRange]);
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 2,
-    }).format(value);
-  };
+
 
   const handleExportCSV = async () => {
     try {

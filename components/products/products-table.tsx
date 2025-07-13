@@ -32,6 +32,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useCurrency } from "@/lib/currency-provider";
 
 interface Product {
   id: number;
@@ -64,6 +65,7 @@ interface ProductsTableProps {
 }
 
 export default function ProductsTable({ filters }: ProductsTableProps) {
+  const { formatCurrency } = useCurrency();
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -427,10 +429,10 @@ export default function ProductsTable({ filters }: ProductsTableProps) {
                       <div className="space-y-1">
                         <div className="flex items-center justify-end gap-1 font-medium text-gray-900">
                           <DollarSign className="h-4 w-4 text-gray-400" />
-                          {Number(product.sellingPrice).toFixed(2)}
+                          {formatCurrency(Number(product.sellingPrice))}
                         </div>
                         <div className="text-xs text-gray-500">
-                          Cost: ${Number(product.supplierPrice).toFixed(2)}
+                          Cost: {formatCurrency(Number(product.supplierPrice))}
                         </div>
                         <div className="text-xs">
                           <span className={`font-medium ${calculateProfitMargin(product) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -493,10 +495,7 @@ export default function ProductsTable({ filters }: ProductsTableProps) {
                   Total Stock: {products.reduce((sum, p) => sum + p.stockQuantity, 0)} units
                 </div>
                 <div>
-                  Total Value: $
-                  {products
-                    .reduce((sum, p) => sum + (p.sellingPrice * p.stockQuantity), 0)
-                    .toFixed(2)}
+                  Total Value: {formatCurrency(products.reduce((sum, p) => sum + (p.sellingPrice * p.stockQuantity), 0))}
                 </div>
                 {products.some(p => (p.stockQuantity + (p.provisionalStock || 0)) <= 10) && (
                   <div className="text-amber-600 flex items-center gap-1">

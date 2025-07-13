@@ -28,6 +28,7 @@ import InvoicePdfView from "@/components/pdf/InvoicePdfView";
 import { createPortal } from "react-dom";
 import { useParams } from "next/navigation";
 import { exportToPdf } from "@/lib/pdf-export";
+import { useCurrency } from "@/lib/currency-provider";
 
 // Types
 interface InvoiceItem {
@@ -59,6 +60,7 @@ export default function ClientInvoiceDetailPage() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [showPdfView, setShowPdfView] = useState(false);
   const pdfDivRef = useRef<HTMLDivElement>(null);
+  const { formatCurrency } = useCurrency();
 
   // Move fetchInvoice outside useEffect so it can be reused
   const fetchInvoice = async () => {
@@ -129,23 +131,36 @@ export default function ClientInvoiceDetailPage() {
     }
   };
 
-  // Temporary simplified version - just updates local state
   const handleUpdateStatus = async (
     newStatus: Partial<Pick<Invoice, "payment_status" | "delivery_status">>
   ) => {
     if (!invoice) return;
     setIsUpdating(true);
     
-    // Just update the local state for now
-    setInvoice(prevInvoice => prevInvoice ? { ...prevInvoice, ...newStatus } : null);
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    setIsUpdating(false);
-    
-    // TODO: Implement actual API call once endpoint is fixed
-    console.log('Status updated locally:', newStatus);
+    try {
+      const response = await fetch(`/api/invoices/client/${invoiceId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newStatus),
+      });
+
+      if (response.ok) {
+        const updatedInvoice = await response.json();
+        setInvoice(updatedInvoice);
+      } else {
+        console.error("Failed to update invoice status");
+        // Revert local state if API call failed
+        await fetchInvoice();
+      }
+    } catch (error) {
+      console.error("Error updating invoice status:", error);
+      // Revert local state if API call failed
+      await fetchInvoice();
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const handleDownloadPdf = () => {
@@ -277,7 +292,7 @@ export default function ClientInvoiceDetailPage() {
                     Total Amount
                   </label>
                   <p className="text-2xl font-bold text-primary">
-                    ${Number(invoice.totalAmount).toFixed(2)}
+                    {formatCurrency(Number(invoice.totalAmount))}
                   </p>
                 </div>
               </CardContent>
@@ -389,10 +404,10 @@ export default function ClientInvoiceDetailPage() {
                             {item.quantity}
                           </TableCell>
                           <TableCell className="text-right text-gray-900">
-                            ${Number(item.unitPrice).toFixed(2)}
+                            {formatCurrency(Number(item.unitPrice))}
                           </TableCell>
                           <TableCell className="text-right font-semibold text-gray-900">
-                            ${Number(item.totalPrice).toFixed(2)}
+                            {formatCurrency(Number(item.totalPrice))}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -405,7 +420,7 @@ export default function ClientInvoiceDetailPage() {
                           Total Amount:
                         </TableCell>
                         <TableCell className="text-right font-bold text-xl text-primary">
-                          ${Number(invoice.totalAmount).toFixed(2)}
+                          {formatCurrency(Number(invoice.totalAmount))}
                         </TableCell>
                       </TableRow>
                     </TableBody>

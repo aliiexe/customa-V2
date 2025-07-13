@@ -27,6 +27,7 @@ import { CriticalAlertsWidget } from "@/components/dashboard/critical-alerts-wid
 import { QuickActionsWidget } from "@/components/dashboard/quick-actions-widget"
 import { RecentActivityWidget } from "@/components/dashboard/recent-activity-widget"
 import { ProfitabilityWidget } from "@/components/dashboard/profitability-widget"
+import { useCurrency } from "@/lib/currency-provider"
 import Link from "next/link"
 
 interface DashboardStats {
@@ -81,6 +82,7 @@ interface CriticalAlert {
 }
 
 export default function Dashboard() {
+  const { formatCurrency } = useCurrency()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [alerts, setAlerts] = useState<CriticalAlert[]>([])
   const [loading, setLoading] = useState(true)
@@ -127,8 +129,7 @@ export default function Dashboard() {
     )
   }
 
-  const formatCurrency = (value: number) => 
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)
+
 
   const formatPercentage = (value: number) => `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`
 

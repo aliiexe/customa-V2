@@ -43,6 +43,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
+import { useCurrency } from "@/lib/currency-provider";
 
 interface Client {
   id: number;
@@ -63,6 +64,7 @@ interface Client {
 }
 
 export default function ClientsTable() {
+  const { formatCurrency } = useCurrency();
   const [clients, setClients] = useState<Client[]>([]);
   const [filteredClients, setFilteredClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
@@ -466,11 +468,11 @@ export default function ClientsTable() {
                       <div>
                         <div className="flex items-center justify-end gap-1 font-medium">
                           <DollarSign className="h-4 w-4 text-gray-400" />
-                          {client.totalSpent.toFixed(2)}
+                          {formatCurrency(client.totalSpent)}
                         </div>
                         {client.unpaidAmount > 0 && (
                           <div className="text-xs text-red-600 mt-1">
-                            ${client.unpaidAmount.toFixed(2)} outstanding
+                            {formatCurrency(client.unpaidAmount)} outstanding
                           </div>
                         )}
                       </div>
@@ -531,15 +533,11 @@ export default function ClientsTable() {
               </div>
               <div className="text-right">
                 <div>
-                  Total Revenue: $
-                  {clients.reduce((sum, c) => sum + c.totalSpent, 0).toFixed(2)}
+                  Total Revenue: {formatCurrency(clients.reduce((sum, c) => sum + c.totalSpent, 0))}
                 </div>
                 {clients.some((c) => c.unpaidAmount > 0) && (
                   <div className="text-red-600">
-                    Outstanding: $
-                    {clients
-                      .reduce((sum, c) => sum + c.unpaidAmount, 0)
-                      .toFixed(2)}
+                    Outstanding: {formatCurrency(clients.reduce((sum, c) => sum + c.unpaidAmount, 0))}
                   </div>
                 )}
               </div>

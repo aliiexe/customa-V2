@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { TrendingUp, Target, DollarSign, Percent } from "lucide-react"
+import { useCurrency } from "@/lib/currency-provider"
 
 interface ProfitabilityWidgetProps {
   stats: {
@@ -15,8 +16,7 @@ interface ProfitabilityWidgetProps {
 }
 
 export function ProfitabilityWidget({ stats }: ProfitabilityWidgetProps) {
-  const formatCurrency = (value: number) => 
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)
+  const { formatCurrency } = useCurrency()
 
   const getProfitMarginStatus = (margin: number) => {
     if (margin >= 30) return { label: 'Excellent', color: 'bg-green-100 text-green-800 border-green-200' }
