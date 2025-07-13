@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { QuoteStatus } from "@/types/quote-models";
 import { format } from "date-fns";
+import { useCurrency } from "@/lib/currency-provider";
 
 interface Quote {
   id: number;
@@ -39,6 +40,7 @@ export default function ClientQuotesTable({
   isLoading,
   onQuotesChange,
 }: ClientQuotesTableProps) {
+  const { formatCurrency } = useCurrency();
   const [sortColumn, setSortColumn] = useState("dateCreated");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 

@@ -80,7 +80,12 @@ export default function SupplierQuoteForm() {
         body: JSON.stringify({
           ...data,
           dateCreated: new Date().toISOString(),
-          totalAmount: data.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0),
+          totalAmount: (() => {
+            const totalHT = data.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0)
+            const tvaRate = 20 // 20% TVA
+            const tvaAmount = totalHT * (tvaRate / 100)
+            return totalHT + tvaAmount // Total TTC
+          })(),
           status: "DRAFT",
         }),
       })

@@ -123,7 +123,11 @@ export default function NewClientQuotePage() {
   }
 
   const calculateTotal = () => {
-    return items.reduce((sum, item) => sum + item.totalPrice, 0)
+    const totalHT = items.reduce((sum, item) => sum + item.totalPrice, 0)
+    const tvaRate = 20 // 20% TVA
+    const tvaAmount = totalHT * (tvaRate / 100)
+    const totalTTC = totalHT + tvaAmount
+    return { totalHT, tvaAmount, totalTTC }
   }
 
   const saveAsDraft = async () => {
@@ -288,9 +292,21 @@ export default function NewClientQuotePage() {
                     <span className="font-medium">{items.length}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Total:</span>
+                    <span>Total HT:</span>
+                    <span className="font-medium">
+                      ${calculateTotal().totalHT.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>TVA 20%:</span>
+                    <span className="font-medium">
+                      ${calculateTotal().tvaAmount.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between border-t pt-2">
+                    <span className="font-bold">Total TTC:</span>
                     <span className="font-bold text-lg text-primary">
-                      ${(parseFloat(calculateTotal().toString()) || 0).toFixed(2)}
+                      ${calculateTotal().totalTTC.toFixed(2)}
                     </span>
                   </div>
                 </div>

@@ -44,6 +44,7 @@ interface ClientReportsProps {
 }
 
 function ClientContributionsTable() {
+  const { formatCurrency } = useCurrency();
   const [data, setData] = useState<
     { id: number; name: string; revenue: number; percentage: number }[]
   >([]);

@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TrendingUp, TrendingDown } from "lucide-react";
+import { useCurrency } from "@/lib/currency-provider";
 
 interface MonthlySalesData {
   month: string;
@@ -25,6 +26,7 @@ interface MonthlySalesTableProps {
 }
 
 export function MonthlySalesTable({ year }: MonthlySalesTableProps) {
+  const { formatCurrency } = useCurrency();
   const [data, setData] = useState<MonthlySalesData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -66,13 +68,7 @@ export function MonthlySalesTable({ year }: MonthlySalesTableProps) {
     return <div className="text-red-500">{error}</div>;
   }
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 2,
-    }).format(value);
-  };
+
 
   return (
     <Table>

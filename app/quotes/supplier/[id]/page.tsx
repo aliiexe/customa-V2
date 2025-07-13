@@ -10,6 +10,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import { QuoteStatus } from "@/types/quote-models"
+import { useCurrency } from "@/lib/currency-provider"
 
 interface QuoteItem {
   id: number
@@ -38,6 +39,7 @@ interface Quote {
 export default function SupplierQuoteDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: quoteId } = use(params)
   const router = useRouter()
+  const { formatCurrency } = useCurrency()
   const [quote, setQuote] = useState<Quote | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isUpdating, setIsUpdating] = useState(false)
@@ -263,11 +265,25 @@ export default function SupplierQuoteDetailPage({ params }: { params: Promise<{ 
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Total Amount</label>
-                  <p className="text-2xl font-bold text-primary">
-                    ${Number(quote.totalAmount).toFixed(2)}
-                  </p>
+                <div className="space-y-2">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Total HT</label>
+                    <p className="font-medium text-gray-900">
+                      ${(Number(quote.totalAmount) / 1.2).toFixed(2)}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">TVA 20%</label>
+                    <p className="font-medium text-gray-900">
+                      ${(Number(quote.totalAmount) - (Number(quote.totalAmount) / 1.2)).toFixed(2)}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Total TTC</label>
+                    <p className="text-2xl font-bold text-primary">
+                      ${Number(quote.totalAmount).toFixed(2)}
+                    </p>
+                  </div>
                 </div>
 
                 {quote.notes && (

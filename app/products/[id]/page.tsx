@@ -18,6 +18,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
+import { useCurrency } from "@/lib/currency-provider";
 
 export default function ProductDetailsPage({
   params,
@@ -25,6 +26,7 @@ export default function ProductDetailsPage({
   params: { id: string };
 }) {
   const router = useRouter();
+  const { formatCurrency } = useCurrency();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

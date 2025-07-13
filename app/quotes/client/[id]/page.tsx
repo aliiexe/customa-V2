@@ -33,6 +33,7 @@ import { QuoteStatus } from "@/types/quote-models";
 import { createPortal } from "react-dom";
 import { exportToPdf } from "@/lib/pdf-export";
 import QuotePdfView from "@/components/pdf/QuotePdfView";
+import { useCurrency } from "@/lib/currency-provider";
 
 interface QuoteItem {
   id: number;
@@ -65,6 +66,7 @@ export default function QuoteDetailPage({
 }) {
   const { id: quoteId } = use(params);
   const router = useRouter();
+  const { formatCurrency } = useCurrency();
   const [quote, setQuote] = useState<Quote | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -359,13 +361,31 @@ export default function QuoteDetailPage({
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-sm font-medium text-slate-600">
-                    Total Amount
-                  </label>
-                  <p className="text-2xl font-bold text-primary">
-                    ${Number(quote.totalAmount).toFixed(2)}
-                  </p>
+                <div className="space-y-2">
+                  <div>
+                    <label className="text-sm font-medium text-slate-600">
+                      Total HT
+                    </label>
+                    <p className="font-medium text-slate-900">
+                      ${(Number(quote.totalAmount) / 1.2).toFixed(2)}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-slate-600">
+                      TVA 20%
+                    </label>
+                    <p className="font-medium text-slate-900">
+                      ${(Number(quote.totalAmount) - (Number(quote.totalAmount) / 1.2)).toFixed(2)}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-slate-600">
+                      Total TTC
+                    </label>
+                    <p className="text-2xl font-bold text-primary">
+                      ${Number(quote.totalAmount).toFixed(2)}
+                    </p>
+                  </div>
                 </div>
 
                 {quote.notes && (

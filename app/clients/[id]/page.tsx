@@ -20,6 +20,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
+import { useCurrency } from "@/lib/currency-provider";
 
 export default function ClientDetailsPage({
   params,
@@ -28,6 +29,7 @@ export default function ClientDetailsPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const { formatCurrency } = useCurrency();
   const [client, setClient] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

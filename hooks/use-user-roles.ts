@@ -15,21 +15,21 @@ export function useUserRoles() {
       try {
         setLoading(true);
         setError(null);
-        
+
         // First get the current user
         const userResponse = await fetch('/api/users/me');
         if (!userResponse.ok) {
           throw new Error('Failed to fetch user');
         }
-        
+
         const user = await userResponse.json();
-        
+
         // Then get the user's roles
         const rolesResponse = await fetch(`/api/users/${user.id}/roles`);
         if (!rolesResponse.ok) {
           throw new Error('Failed to fetch user roles');
         }
-        
+
         const userRoles = await rolesResponse.json();
         setRoles(userRoles);
       } catch (err) {

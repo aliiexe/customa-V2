@@ -43,13 +43,13 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const { payment_status, delivery_status } = body;
 
     // Use transaction for database consistency
-    await transaction(async (connection) => {
+    const result = await transaction(async (connection) => {
       // Get current invoice status and items
       const [currentInvoice] = await connection.execute(
         "SELECT delivery_status FROM client_invoices WHERE id = ?",
         [invoiceId]
       );
-      
+
       const [items] = await connection.execute(
         "SELECT productId, quantity FROM client_invoice_items WHERE invoiceId = ?",
         [invoiceId]
@@ -69,11 +69,11 @@ export async function PUT(request: Request, { params }: { params: { id: string }
           "UPDATE client_invoices SET delivery_status = ?, updatedAt = NOW() WHERE id = ?",
           [delivery_status, invoiceId]
         );
-        
+
         // Handle stock updates when changing to SENDING status
-        if (delivery_status === "SENDING" && 
-            (currentInvoice as any[])[0].delivery_status !== "SENDING" && 
-            (currentInvoice as any[])[0].delivery_status !== "DELIVERED") {
+        if (delivery_status === "SENDING" &&
+          (currentInvoice as any[])[0].delivery_status !== "SENDING" &&
+          (currentInvoice as any[])[0].delivery_status !== "DELIVERED") {
           // Decrease actual stock when status changes to SENDING
           for (const item of items as any[]) {
             await connection.execute(
@@ -87,33 +87,36 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         }
       }
 
-      // Fetch updated invoice with items for response
-      const updatedInvoiceResult = await query(
-        `SELECT ci.*, c.name as clientName, c.email as clientEmail, c.address as clientAddress
-         FROM client_invoices ci 
-         LEFT JOIN clients c ON ci.clientId = c.id 
-         WHERE ci.id = ?`,
-        [invoiceId]
-      );
-      
-      if ((updatedInvoiceResult as any[]).length === 0) {
-        return NextResponse.json({ error: "Invoice not found after update" }, { status: 404 });
-      }
-
-      const updatedInvoice = (updatedInvoiceResult as any[])[0];
-
-      const itemsResult = await query(
-        `SELECT cii.*, p.name as productName, p.reference as productReference
-         FROM client_invoice_items cii 
-         LEFT JOIN products p ON cii.productId = p.id 
-         WHERE cii.invoiceId = ?`,
-        [invoiceId]
-      );
-
-      updatedInvoice.items = itemsResult;
-
-      return NextResponse.json(updatedInvoice);
+      // Return the invoice ID to fetch the updated invoice
+      return invoiceId;
     });
+
+    // Fetch the complete updated invoice with items for the response
+    const updatedInvoiceResult = await query(
+      `SELECT ci.*, c.name as clientName, c.email as clientEmail, c.address as clientAddress
+       FROM client_invoices ci 
+       LEFT JOIN clients c ON ci.clientId = c.id 
+       WHERE ci.id = ?`,
+      [invoiceId]
+    );
+
+    if ((updatedInvoiceResult as any[]).length === 0) {
+      return NextResponse.json({ error: "Invoice not found after update" }, { status: 404 });
+    }
+
+    const updatedInvoice = (updatedInvoiceResult as any[])[0];
+
+    const itemsResult = await query(
+      `SELECT cii.*, p.name as productName, p.reference as productReference
+       FROM client_invoice_items cii 
+       LEFT JOIN products p ON cii.productId = p.id 
+       WHERE cii.invoiceId = ?`,
+      [invoiceId]
+    );
+
+    updatedInvoice.items = itemsResult;
+
+    return NextResponse.json(updatedInvoice);
   } catch (error) {
     console.error("Error updating client invoice:", error);
     return NextResponse.json({ error: "Failed to update client invoice" }, { status: 500 });

@@ -60,7 +60,7 @@ const QuotePdfView: React.FC<QuotePdfViewProps> = ({ quote }) => {
   // Totals calculation
   const computedTotalHT = items.reduce((sum, i) => sum + i.totalPrice, 0);
   const totalHT = quote.totalHT != null ? Number(quote.totalHT) : computedTotalHT;
-  const tvaRate = quote.tvaRate != null ? Number(quote.tvaRate) : 0;
+  const tvaRate = quote.tvaRate != null ? Number(quote.tvaRate) : 20;
   const tvaAmount = totalHT * (tvaRate / 100);
   const totalTTC = quote.totalTTC != null ? Number(quote.totalTTC) : totalHT + tvaAmount;
 

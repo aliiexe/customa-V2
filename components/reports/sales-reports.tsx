@@ -21,6 +21,7 @@ import { RevenueChart } from "@/components/dashboard/revenue-chart";
 import { MonthlySalesTable } from "@/components/reports/monthly-sales-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
+import { useCurrency } from "@/lib/currency-provider";
 
 interface SalesData {
   totalRevenue: number;
@@ -34,6 +35,7 @@ interface SalesReportsProps {
 }
 
 export default function SalesReports({ dateRange }: SalesReportsProps) {
+  const { formatCurrency } = useCurrency();
   const [salesData, setSalesData] = useState<SalesData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -66,13 +68,7 @@ export default function SalesReports({ dateRange }: SalesReportsProps) {
     fetchSalesData();
   }, [dateRange]);
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 2,
-    }).format(value);
-  };
+
 
   const handleExportCSV = async () => {
     try {

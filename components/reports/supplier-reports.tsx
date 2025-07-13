@@ -21,6 +21,7 @@ import { SupplierExpensesChart } from "@/components/reports/supplier-expenses-ch
 import { SupplierProductsTable } from "@/components/reports/supplier-products-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
+import { useCurrency } from "@/lib/currency-provider";
 
 interface SupplierData {
   totalSuppliers: number;
@@ -43,6 +44,7 @@ interface SupplierReportsProps {
 }
 
 export default function SupplierReports({ dateRange }: SupplierReportsProps) {
+  const { formatCurrency } = useCurrency();
   const [data, setData] = useState<SupplierData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -96,13 +98,7 @@ export default function SupplierReports({ dateRange }: SupplierReportsProps) {
     fetchData();
   }, [dateRange]);
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 2,
-    }).format(value);
-  };
+
 
   const handleExportCSV = async () => {
     try {

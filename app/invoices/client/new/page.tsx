@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Plus, Trash2, DollarSign, Calendar, User, FileText } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useCurrency } from "@/lib/currency-provider"
 
 interface Client {
   id: number
@@ -38,6 +39,7 @@ interface InvoiceItem {
 
 export default function NewClientInvoicePage() {
   const router = useRouter()
+  const { formatCurrency } = useCurrency()
   const [clients, setClients] = useState<Client[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)

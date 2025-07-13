@@ -150,7 +150,8 @@ export default function ClientInvoiceDetailPage() {
         const updatedInvoice = await response.json();
         setInvoice(updatedInvoice);
       } else {
-        console.error("Failed to update invoice status");
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Failed to update invoice status:", response.status, errorData);
         // Revert local state if API call failed
         await fetchInvoice();
       }

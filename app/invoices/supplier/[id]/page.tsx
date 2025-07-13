@@ -30,6 +30,7 @@ import Link from "next/link";
 import { createPortal } from "react-dom";
 import { exportToPdf } from "@/lib/pdf-export";
 import InvoicePdfView from "@/components/pdf/InvoicePdfView";
+import { useCurrency } from "@/lib/currency-provider";
 
 interface InvoiceItem {
   id: number;
@@ -55,6 +56,7 @@ interface Invoice {
 export default function SupplierInvoicePage() {
   const params = useParams();
   const router = useRouter();
+  const { formatCurrency } = useCurrency();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
   const [isPdfOpen, setIsPdfOpen] = useState(false);

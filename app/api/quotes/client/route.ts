@@ -79,8 +79,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    // Calculate total amount
-    const totalAmount = items.reduce((sum: number, item: any) => sum + item.quantity * item.unitPrice, 0)
+    // Calculate total amount with TVA
+    const totalHT = items.reduce((sum: number, item: any) => sum + item.quantity * item.unitPrice, 0)
+    const tvaRate = 20 // 20% TVA
+    const tvaAmount = totalHT * (tvaRate / 100)
+    const totalAmount = totalHT + tvaAmount // Total TTC
 
     const result = await transaction(async (connection) => {
       // Create the quote
@@ -100,10 +103,10 @@ export async function POST(request: Request) {
            (quoteId, productId, quantity, unitPrice, totalPrice) 
            VALUES (?, ?, ?, ?, ?)`,
           [
-            quoteId, 
-            item.productId, 
-            item.quantity, 
-            item.unitPrice, 
+            quoteId,
+            item.productId,
+            item.quantity,
+            item.unitPrice,
             item.quantity * item.unitPrice
           ],
         )
