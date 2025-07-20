@@ -162,7 +162,7 @@ export default function SettingsPage() {
                     >
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-lg font-semibold">{curr.symbol}</span>
-                        <span className="text-sm text-gray-500">{curr.code}</span>
+                        <span className="text-sm text-gray-500" translate="no">{curr.code}</span>
                       </div>
                       <span className="text-sm font-medium text-gray-900">{curr.name}</span>
                       <span className="text-xs text-gray-500 mt-1">Example: {curr.example}</span>
@@ -182,7 +182,7 @@ export default function SettingsPage() {
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         {currencies.map((curr) => (
                           <div key={curr.code} className="flex justify-between">
-                            <span>{curr.code}:</span>
+                            <span translate="no">{curr.code}:</span>
                             <span className="font-medium">
                               {exchangeRates[curr.code as Currency]?.toFixed(4) || 'N/A'}
                             </span>
