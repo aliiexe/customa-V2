@@ -83,7 +83,7 @@ const InvoicePdfView: React.FC<InvoicePdfViewProps> = ({ invoice }) => {
         {/* Logo & Sender Info */}
         <div style={{ width: "50%" }}>
           <img
-            src="/GWAtech-logo.jpg"
+            src="/company1logo.png"
             alt="GWAtech Logo"
             style={{
               marginBottom: 12,
@@ -250,13 +250,41 @@ const InvoicePdfView: React.FC<InvoicePdfViewProps> = ({ invoice }) => {
       </div>
 
       {/* Footer */}
-      <div style={{ marginTop: 40, fontSize: 12, color: "#444" }}>
-        <div>
-          ICE: {sender.ice} | RC: {sender.rc} | IF: {sender.if} | PATENTE:{" "}
-          {sender.patente} | CNSS: {sender.cnss}
+      <div
+        className="pdf-footer"
+        style={{
+          position: "fixed",
+          left: 40,
+          right: 40,
+          bottom: 40,
+          borderTop: "1px solid #888",
+          paddingTop: 10,
+          fontSize: 11,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          background: "#fff",
+        }}
+      >
+        {/* Left column */}
+        <div style={{ minWidth: 180 }}>
+          <div style={{ fontWeight: 600 }}>GLOBAL WATECH</div>
+          <div>RÉSIDENCE LES FLEURS APP: 11</div>
+          <div>ETAGE 4, PARC MOHAMMEDIA 20800</div>
         </div>
-        <div>
-          <strong>Merci pour votre confiance.</strong>
+        {/* Middle column */}
+        <div style={{ minWidth: 180 }}>
+          <div>📞 0523 310 144</div>
+          <div>✉️ contact@globalwatech.com</div>
+          <div>🌐 www.globalwatech.com</div>
+        </div>
+        {/* Right column */}
+        <div style={{ minWidth: 220, textAlign: "left" }}>
+          <div><span style={{ display: "inline-block", width: 90 }}>ICE</span>000224125000067</div>
+          <div><span style={{ display: "inline-block", width: 90 }}>PATENTE</span>39590111</div>
+          <div><span style={{ display: "inline-block", width: 90 }}>RC</span>10819</div>
+          <div><span style={{ display: "inline-block", width: 90 }}>IDENTIFIANT FISCAL</span>40429563</div>
+          <div><span style={{ display: "inline-block", width: 90 }}>CNSS</span>8860745</div>
         </div>
       </div>
     </div>

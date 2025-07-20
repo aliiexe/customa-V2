@@ -141,15 +141,12 @@ export function CurrencyProvider({ children }: CurrencyProviderProps) {
 
   const formatCurrency = (amount: number): string => {
     const currencyInfo = currencyMap[currency];
-    
-    // Convert amount if it's in USD (assuming all stored amounts are in USD)
-    const convertedAmount = convertCurrency(amount, "USD");
-    
+    const safeAmount = Number(amount) || 0; // Ensure it's a number
     if (currency === "MAD") {
-      // Special formatting for Moroccan Dirham
-      return `${convertedAmount.toFixed(2)} MAD`;
+      // Data is already in MAD, do not convert
+      return `${safeAmount.toFixed(2)} MAD`;
     }
-    
+    const convertedAmount = convertCurrency(safeAmount, "USD");
     try {
       return new Intl.NumberFormat(currencyInfo.format, {
         style: "currency",
@@ -158,7 +155,6 @@ export function CurrencyProvider({ children }: CurrencyProviderProps) {
         maximumFractionDigits: 2,
       }).format(convertedAmount);
     } catch (error) {
-      // Fallback formatting
       return `${currencyInfo.symbol}${convertedAmount.toFixed(2)}`;
     }
   };

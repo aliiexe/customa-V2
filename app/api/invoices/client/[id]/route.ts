@@ -36,11 +36,19 @@ export async function GET(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, context: { params: { id: string } }) {
   try {
-    const { id: invoiceId } = params;
+    // Await params for Next.js app router compatibility
+    const { id: invoiceId } = context.params;
     const body = await request.json();
-    const { payment_status, delivery_status } = body;
+    const { payment_status, delivery_status, clientName, deliveryDate, items } = body;
+
+    // Calculate new totalAmount if items are provided
+    let newTotalAmount = undefined;
+    if (Array.isArray(items)) {
+      const totalHT = items.reduce((sum, item) => sum + Number(item.totalPrice), 0);
+      newTotalAmount = totalHT + (totalHT * 0.20); // Add 20% TVA
+    }
 
     // Use transaction for database consistency
     const result = await transaction(async (connection) => {
@@ -50,40 +58,88 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         [invoiceId]
       );
 
-      const [items] = await connection.execute(
-        "SELECT productId, quantity FROM client_invoice_items WHERE invoiceId = ?",
+      const [oldItems] = await connection.execute(
+        "SELECT id, productId, quantity FROM client_invoice_items WHERE invoiceId = ?",
         [invoiceId]
       );
 
-      // Update invoice payment status if provided
+      // Update invoice fields if provided
+      const updateFields = [];
+      const updateValues = [];
       if (payment_status) {
+        updateFields.push("payment_status = ?");
+        updateValues.push(payment_status);
+      }
+      if (delivery_status) {
+        updateFields.push("delivery_status = ?");
+        updateValues.push(delivery_status);
+      }
+      if (clientName) {
+        // Update client name in clients table if needed
         await connection.execute(
-          "UPDATE client_invoices SET payment_status = ?, updatedAt = NOW() WHERE id = ?",
-          [payment_status, invoiceId]
+          "UPDATE clients c JOIN client_invoices ci ON c.id = ci.clientId SET c.name = ? WHERE ci.id = ?",
+          [clientName, invoiceId]
+        );
+      }
+      if (deliveryDate) {
+        updateFields.push("deliveryDate = ?");
+        updateValues.push(deliveryDate);
+      }
+      if (typeof newTotalAmount === 'number') {
+        updateFields.push("totalAmount = ?");
+        updateValues.push(newTotalAmount);
+      }
+      if (updateFields.length > 0) {
+        updateFields.push("updatedAt = NOW()");
+        await connection.execute(
+          `UPDATE client_invoices SET ${updateFields.join(", ")} WHERE id = ?`,
+          [...updateValues, invoiceId]
         );
       }
 
-      // Update delivery status if provided
-      if (delivery_status) {
-        await connection.execute(
-          "UPDATE client_invoices SET delivery_status = ?, updatedAt = NOW() WHERE id = ?",
-          [delivery_status, invoiceId]
-        );
-
-        // Handle stock updates when changing to SENDING status
-        if (delivery_status === "SENDING" &&
-          (currentInvoice as any[])[0].delivery_status !== "SENDING" &&
-          (currentInvoice as any[])[0].delivery_status !== "DELIVERED") {
-          // Decrease actual stock when status changes to SENDING
-          for (const item of items as any[]) {
+      // Update items if provided
+      if (Array.isArray(items)) {
+        for (const item of items) {
+          if (item.id) {
+            // Update existing item
             await connection.execute(
-              `UPDATE products 
-               SET stockQuantity = GREATEST(0, stockQuantity - ?),
-                   updatedAt = CURRENT_TIMESTAMP
-               WHERE id = ?`,
-              [item.quantity, item.productId]
+              `UPDATE client_invoice_items SET productId = ?, quantity = ?, unitPrice = ?, totalPrice = ? WHERE id = ? AND invoiceId = ?`,
+              [item.productId, item.quantity, item.unitPrice, item.totalPrice, item.id, invoiceId]
+            );
+          } else {
+            // Insert new item (if needed)
+            await connection.execute(
+              `INSERT INTO client_invoice_items (invoiceId, productId, quantity, unitPrice, totalPrice) VALUES (?, ?, ?, ?, ?)`,
+              [invoiceId, item.productId, item.quantity, item.unitPrice, item.totalPrice]
             );
           }
+        }
+        // Optionally, delete removed items
+        const updatedIds = items.filter(i => i.id).map(i => i.id);
+        for (const oldItem of oldItems as any[]) {
+          if (!updatedIds.includes(oldItem.id)) {
+            await connection.execute(
+              `DELETE FROM client_invoice_items WHERE id = ? AND invoiceId = ?`,
+              [oldItem.id, invoiceId]
+            );
+          }
+        }
+      }
+
+      // Handle stock updates when changing to SENDING status
+      if (
+        delivery_status === "SENDING" &&
+        (currentInvoice as any[])[0].delivery_status !== "SENDING" &&
+        (currentInvoice as any[])[0].delivery_status !== "DELIVERED"
+      ) {
+        for (const item of oldItems as any[]) {
+          await connection.execute(
+            `UPDATE products 
+             SET stockQuantity = GREATEST(0, stockQuantity - ?),
+                 updatedAt = CURRENT_TIMESTAMP
+             WHERE id = ?`,
+            [item.quantity, item.productId]
+          );
         }
       }
 

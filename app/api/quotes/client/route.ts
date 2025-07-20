@@ -74,13 +74,29 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { clientId, validUntil, items, notes, status = QuoteStatus.DRAFT } = body
 
+    console.log('Received items:', items);
+
+    // Normalize all prices to float with dot decimal
+    const normalizedItems = items.map((item: any) => {
+      const normalizedUnitPrice = typeof item.unitPrice === 'string' ? parseFloat(item.unitPrice.replace(',', '.')) : Number(item.unitPrice);
+      const normalizedTotalPrice = typeof item.totalPrice === 'string' ? parseFloat(item.totalPrice.replace(',', '.')) : Number(item.totalPrice);
+      console.log('Normalizing item:', { ...item, normalizedUnitPrice, normalizedTotalPrice });
+      return {
+        ...item,
+        unitPrice: normalizedUnitPrice,
+        totalPrice: normalizedTotalPrice,
+      };
+    });
+
+    console.log('Normalized items:', normalizedItems);
+
     // Validate required fields
     if (!clientId || !items || items.length === 0) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
     // Calculate total amount with TVA
-    const totalHT = items.reduce((sum: number, item: any) => sum + item.quantity * item.unitPrice, 0)
+    const totalHT = normalizedItems.reduce((sum: number, item: any) => sum + item.quantity * item.unitPrice, 0)
     const tvaRate = 20 // 20% TVA
     const tvaAmount = totalHT * (tvaRate / 100)
     const totalAmount = totalHT + tvaAmount // Total TTC
@@ -97,7 +113,14 @@ export async function POST(request: Request) {
       const quoteId = (quoteResult as any).insertId
 
       // Create quote items
-      for (const item of items) {
+      for (const item of normalizedItems) {
+        console.log('Inserting quote item:', {
+          quoteId,
+          productId: item.productId,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          totalPrice: item.quantity * item.unitPrice
+        });
         await connection.execute(
           `INSERT INTO client_quote_items 
            (quoteId, productId, quantity, unitPrice, totalPrice) 

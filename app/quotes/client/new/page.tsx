@@ -103,24 +103,30 @@ export default function NewClientQuotePage() {
   const updateItem = (itemId: string, field: keyof QuoteItem, value: any) => {
     setItems(items.map(item => {
       if (item.id === itemId) {
-        const updatedItem = { ...item, [field]: value }
+        const updatedItem = { ...item };
+        if (field === 'unitPrice') {
+          // Always normalize to float with dot
+          updatedItem.unitPrice = parseFloat(value.toString().replace(',', '.'));
+        } else {
+          updatedItem[field] = value;
+        }
         if (field === 'productId') {
-          const product = products.find(p => p.id === value)
+          const product = products.find(p => p.id === value);
           if (product) {
-            updatedItem.productName = product.name
-            updatedItem.productReference = product.reference
-            updatedItem.originalPrice = product.sellingPrice
-            updatedItem.unitPrice = product.sellingPrice
+            updatedItem.productName = product.name;
+            updatedItem.productReference = product.reference;
+            updatedItem.originalPrice = product.sellingPrice;
+            updatedItem.unitPrice = product.sellingPrice;
           }
         }
         if (field === 'unitPrice' || field === 'quantity') {
-          updatedItem.totalPrice = updatedItem.unitPrice * updatedItem.quantity
+          updatedItem.totalPrice = updatedItem.unitPrice * updatedItem.quantity;
         }
-        return updatedItem
+        return updatedItem;
       }
-      return item
-    }))
-  }
+      return item;
+    }));
+  };
 
   const calculateTotal = () => {
     const totalHT = items.reduce((sum, item) => sum + item.totalPrice, 0)
@@ -129,6 +135,13 @@ export default function NewClientQuotePage() {
     const totalTTC = totalHT + tvaAmount
     return { totalHT, tvaAmount, totalTTC }
   }
+
+  const normalizePrice = (value: any) => {
+    if (typeof value === 'string') {
+      return parseFloat(value.replace(',', '.'));
+    }
+    return Number(value);
+  };
 
   const saveAsDraft = async () => {
     if (!selectedClient || items.length === 0) {
@@ -150,7 +163,8 @@ export default function NewClientQuotePage() {
           items: items.map(item => ({
             productId: item.productId,
             quantity: item.quantity,
-            unitPrice: item.unitPrice
+            unitPrice: normalizePrice(item.unitPrice),
+            totalPrice: normalizePrice(item.unitPrice) * Number(item.quantity)
           }))
         }),
       })
@@ -190,7 +204,8 @@ export default function NewClientQuotePage() {
           items: items.map(item => ({
             productId: item.productId,
             quantity: item.quantity,
-            unitPrice: item.unitPrice
+            unitPrice: normalizePrice(item.unitPrice),
+            totalPrice: normalizePrice(item.unitPrice) * Number(item.quantity)
           })),
           status: QuoteStatus.PENDING
         }),

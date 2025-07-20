@@ -11,13 +11,22 @@ export const exportToPdf = async (element: HTMLElement, filename: string) => {
 
     // Create a clone of the element to modify for PDF
     const clonedElement = element.cloneNode(true) as HTMLElement;
-    
+
     // Apply PDF-specific styles
     clonedElement.style.width = '794px'; // A4 width in pixels at 96 DPI
     clonedElement.style.backgroundColor = 'white';
     clonedElement.style.padding = '20px';
     clonedElement.style.fontFamily = 'Arial, sans-serif';
-    
+
+    // Adjust footer for PDF export
+    const pdfFooter = clonedElement.querySelector('.pdf-footer');
+    if (pdfFooter) {
+      (pdfFooter as HTMLElement).style.position = 'static';
+      (pdfFooter as HTMLElement).style.width = '100%';
+      (pdfFooter as HTMLElement).style.bottom = '20px';
+      (pdfFooter as HTMLElement).style.marginTop = '50px';
+    }
+
     // Temporarily add to document for rendering
     clonedElement.style.position = 'absolute';
     clonedElement.style.left = '-9999px';
@@ -71,23 +80,12 @@ export const exportToPdf = async (element: HTMLElement, filename: string) => {
     }
 
     // Add header to all pages
-    const pageCount = pdf.internal.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      pdf.setPage(i);
-      
-      // // Add title
-      // pdf.setFontSize(16);
-      // pdf.setTextColor(46, 125, 50); // Green color
-      // pdf.text(filename.replace('.pdf', ''), 10, 25);
-      
-      // // Add date
-      // pdf.setFontSize(10);
-      // pdf.setTextColor(100, 100, 100);
-      // pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 10, 35);
-      
-      // Add page number
-      pdf.text(`Page ${i} of ${pageCount}`, pdfWidth - 30, pdfHeight - 10);
-    }
+    // const pageCount = pdf.internal.getNumberOfPages();
+    // for (let i = 1; i <= pageCount; i++) {
+    //   pdf.setPage(i);
+    //   // Add page number
+    //   // pdf.text(`Page ${i} of ${pageCount}`, pdfWidth - 30, pdfHeight - 10);
+    // }
 
     // Save the PDF
     pdf.save(filename);

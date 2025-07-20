@@ -77,7 +77,16 @@ const QuotePdfView: React.FC<QuotePdfViewProps> = ({ quote }) => {
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20 }}>
         <div style={{ width: "50%" }}>
-          <img src="/GWAtech-logo.jpg" width={100} height={150} alt="Logo" style={{ marginBottom: 12, width: 180, height: 60, objectFit: "contain" }}/>
+        <img
+            src="/company1logo.png"
+            alt="GWAtech Logo"
+            style={{
+              marginBottom: 12,
+              width: 100,
+              height: 150,
+              objectFit: "contain",
+            }}
+          />
           <div style={{ fontWeight: 600 }}>{sender.name}</div>
           <div>{sender.address}</div>
           <div>{sender.phone}</div>
@@ -90,6 +99,12 @@ const QuotePdfView: React.FC<QuotePdfViewProps> = ({ quote }) => {
           <div><strong>Date:</strong> {new Date(quote.date).toLocaleDateString("fr-FR")}</div>
           {quote.lieu && <div><strong>Lieu:</strong> {quote.lieu}</div>}
         </div>
+      </div>
+
+      {/* Introductory line */}
+      <div style={{ margin: '24px 0 8px 0' }}>
+        Bonjour,<br/>
+        Suite à votre demande de prix dont nous vous en remercions, veuillez trouver ci-après, notre meilleure offre de prix ainsi que nos conditions de vente :
       </div>
 
       {/* Items Table */}
@@ -139,15 +154,41 @@ const QuotePdfView: React.FC<QuotePdfViewProps> = ({ quote }) => {
       </div>
 
       {/* Footer */}
-      <div style={{ marginTop: 40, fontSize: 12, color: "#444" }}>
-        <div>
-          ICE: {sender.ice} | RC: {sender.rc} | IF: {sender.if} | PATENTE: {sender.patente} | CNSS: {sender.cnss}
+      <div
+        className="pdf-footer"
+        style={{
+          position: "fixed",
+          left: 40,
+          right: 40,
+          bottom: 40,
+          borderTop: "1px solid #888",
+          paddingTop: 10,
+          fontSize: 11,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          background: "#fff",
+        }}
+      >
+        {/* Left column */}
+        <div style={{ minWidth: 180 }}>
+          <div style={{ fontWeight: 600 }}>GLOBAL WATECH</div>
+          <div>RÉSIDENCE LES FLEURS APP: 11</div>
+          <div>ETAGE 4, PARC MOHAMMEDIA 20800</div>
         </div>
-        <div>
-          <strong>
-            Merci pour votre confiance.
-            {validUntilFormatted && ` Offre valable jusqu'à ${validUntilFormatted}.`}
-          </strong>
+        {/* Middle column */}
+        <div style={{ minWidth: 180 }}>
+          <div>📞 0523 310 144</div>
+          <div>✉️ contact@globalwatech.com</div>
+          <div>🌐 www.globalwatech.com</div>
+        </div>
+        {/* Right column */}
+        <div style={{ minWidth: 220, textAlign: "left" }}>
+          <div><span style={{ display: "inline-block", width: 90 }}>ICE</span>000224125000067</div>
+          <div><span style={{ display: "inline-block", width: 90 }}>PATENTE</span>39590111</div>
+          <div><span style={{ display: "inline-block", width: 90 }}>RC</span>10819</div>
+          <div><span style={{ display: "inline-block", width: 90 }}>IDENTIFIANT FISCAL</span>40429563</div>
+          <div><span style={{ display: "inline-block", width: 90 }}>CNSS</span>8860745</div>
         </div>
       </div>
     </div>
