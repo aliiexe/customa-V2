@@ -39,17 +39,6 @@ interface InvoicePdfViewProps {
 }
 
 const InvoicePdfView: React.FC<InvoicePdfViewProps> = ({ invoice }) => {
-  const sender = invoice.sender || {
-    name: "GLOBAL WATCH LUNG APP",
-    address: "RESID. KAWKAB, MOHAMMEDIA",
-    phone: "0521 10 14 04",
-    website: "www.globalwatchtech.com",
-    ice: "0023121275000067",
-    rc: "139941",
-    if: "13994111",
-    patente: "36507435",
-    cnss: "36507435",
-  };
 
   const tvaRate = invoice.tvaRate ?? 20;
   // Ensure totalPrice is numeric
@@ -92,28 +81,44 @@ const InvoicePdfView: React.FC<InvoicePdfViewProps> = ({ invoice }) => {
               objectFit: "contain",
             }}
           />
-          <div style={{ fontWeight: 600 }}>{sender.name}</div>
-          <div>{sender.address}</div>
-          <div>{sender.phone}</div>
-          <div>{sender.website}</div>
+          <div
+            style={{
+              border: "1px solid #ccc",
+              padding: 10,
+              borderRadius: 4,
+            }}
+          >
+            <div style={{ fontWeight: 600, marginBottom: 2 }}>GasFil BV</div>
+            <div style={{ marginBottom: 1 }}>Zuiderakerweg 15b, 1069MD</div>
+            <div style={{ marginBottom: 1 }}>Amsterdam, The Netherlands.</div>
+            <div style={{ marginBottom: 1 }}>
+              <span style={{ color: "#000", fontSize: 12 }}>●</span> +31 6 20 57 84 96
+            </div>
+            <div style={{ marginBottom: 1 }}>
+              <span style={{ color: "#000", fontSize: 12 }}>●</span> contact@gasfil.com
+            </div>
+            <div>
+              <span style={{ color: "#000", fontSize: 12 }}>●</span> www.gasfil.com
+            </div>
+          </div>
         </div>
 
         {/* Invoice Metadata */}
         <div style={{ textAlign: "right" }}>
-          <h2 style={{ margin: 0, fontSize: 26 }}>FACTURE</h2>
+          <h2 style={{ margin: 0, fontSize: 26 }}>INVOICE</h2>
           <div>
-            <strong>FACTURE N°:</strong> {String(invoice.id).padStart(5, "0")}
+            <strong>INVOICE N°:</strong> {String(invoice.id).padStart(5, "0")}
           </div>
           <div>
             <strong>Client:</strong> {invoice.clientName}
           </div>
           <div>
             <strong>Date:</strong>{" "}
-            {new Date(invoice.dateCreated).toLocaleDateString("fr-FR")}
+            {new Date(invoice.dateCreated).toLocaleDateString("en-US")}
           </div>
           <div>
-            <strong>Livraison:</strong>{" "}
-            {new Date(invoice.deliveryDate).toLocaleDateString("fr-FR")}
+            <strong>Delivery:</strong>{" "}
+            {new Date(invoice.deliveryDate).toLocaleDateString("en-US")}
           </div>
         </div>
       </div>
@@ -127,16 +132,16 @@ const InvoicePdfView: React.FC<InvoicePdfViewProps> = ({ invoice }) => {
         }}
       >
         <div>
-          <strong>FACTURER À</strong>
+          <strong>BILL TO</strong>
           <div>{invoice.clientName}</div>
           {invoice.clientAddress && <div>{invoice.clientAddress}</div>}
           {invoice.clientEmail && <div>Email: {invoice.clientEmail}</div>}
-          {invoice.clientPhone && <div>Tél: {invoice.clientPhone}</div>}
+          {invoice.clientPhone && <div>Phone: {invoice.clientPhone}</div>}
         </div>
         <div style={{ textAlign: "right" }}>
-          <strong>LIVRER À</strong>
+          <strong>DELIVER TO</strong>
           <div>{invoice.clientName}</div>
-          <div>{invoice.clientAddress || "[Adresse de livraison]"}</div>
+          <div>{invoice.clientAddress || "[Delivery address]"}</div>
         </div>
       </div>
 
@@ -152,19 +157,19 @@ const InvoicePdfView: React.FC<InvoicePdfViewProps> = ({ invoice }) => {
         <thead>
           <tr style={{ backgroundColor: "#f0f0f0" }}>
             <th style={{ padding: 8, border: "1px solid #ccc", textAlign: "left" }}>
-              Désignation
+              Description
             </th>
             <th style={{ padding: 8, border: "1px solid #ccc", textAlign: "left" }}>
-              Référence
+              Reference
             </th>
             <th style={{ padding: 8, border: "1px solid #ccc", textAlign: "center" }}>
-              Quantité
+              Quantity
             </th>
             <th style={{ padding: 8, border: "1px solid #ccc", textAlign: "right" }}>
-              P.U HT
+              Unit Price
             </th>
             <th style={{ padding: 8, border: "1px solid #ccc", textAlign: "right" }}>
-              P.T HT
+              Total
             </th>
           </tr>
         </thead>
@@ -218,28 +223,28 @@ const InvoicePdfView: React.FC<InvoicePdfViewProps> = ({ invoice }) => {
         <table style={{ width: 300 }}>
           <tbody>
             <tr>
-              <td style={{ padding: "8px 0" }}>Prix Total HT:</td>
+              <td style={{ padding: "8px 0", fontWeight: "bold"}}>Subtotal:</td>
               <td style={{ textAlign: "right" }}>
                 {totalHT.toFixed(2)} DH
               </td>
             </tr>
             <tr>
-              <td>
-                <span style={{ textDecoration: "underline" }}>
-                  TVA {tvaRate}%:
+              <td style={{ paddingBottom: 8 }}>
+                <span style={{ fontWeight: "bold" }}>
+                  VAT {tvaRate}%:
                 </span>
               </td>
               <td style={{ textAlign: "right" }}>
                 {tvaAmount.toFixed(2)} DH
               </td>
             </tr>
-            <tr style={{ borderTop: "2px solid #2e7d32" }}>
-              <td style={{ fontWeight: "bold" }}>Prix Total TTC:</td>
+            <tr style={{ borderTop: "2px solid #FF8C00" }}>
+              <td style={{ fontWeight: "bold" }}>Total Amount:</td>
               <td
                 style={{
                   fontWeight: "bold",
                   textAlign: "right",
-                  color: "#2e7d32",
+                  color: "#FF8C00",
                 }}
               >
                 {totalTTC.toFixed(2)} DH
@@ -257,34 +262,72 @@ const InvoicePdfView: React.FC<InvoicePdfViewProps> = ({ invoice }) => {
           left: 40,
           right: 40,
           bottom: 40,
-          borderTop: "1px solid #888",
           paddingTop: 10,
           fontSize: 11,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
           background: "#fff",
         }}
       >
-        {/* Left column */}
-        <div style={{ minWidth: 180 }}>
-          <div style={{ fontWeight: 600 }}>GLOBAL WATECH</div>
-          <div>RÉSIDENCE LES FLEURS APP: 11</div>
-          <div>ETAGE 4, PARC MOHAMMEDIA 20800</div>
+        {/* Horizontal line with colored sections */}
+        <div
+          style={{
+            height: 3,
+            display: "flex",
+            marginBottom: 15,
+          }}
+        >
+          <div
+            style={{
+              width: "50%",
+              backgroundColor: "#FF8C00", // Orange color
+            }}
+          />
+          <div
+            style={{
+              width: "50%",
+              backgroundColor: "#000000", // Black color
+            }}
+          />
         </div>
-        {/* Middle column */}
-        <div style={{ minWidth: 180 }}>
-          <div>📞 0523 310 144</div>
-          <div>✉️ contact@globalwatech.com</div>
-          <div>🌐 www.globalwatech.com</div>
-        </div>
-        {/* Right column */}
-        <div style={{ minWidth: 220, textAlign: "left" }}>
-          <div><span style={{ display: "inline-block", width: 90 }}>ICE</span>000224125000067</div>
-          <div><span style={{ display: "inline-block", width: 90 }}>PATENTE</span>39590111</div>
-          <div><span style={{ display: "inline-block", width: 90 }}>RC</span>10819</div>
-          <div><span style={{ display: "inline-block", width: 90 }}>IDENTIFIANT FISCAL</span>40429563</div>
-          <div><span style={{ display: "inline-block", width: 90 }}>CNSS</span>8860745</div>
+
+        {/* Footer content */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+          }}
+        >
+          {/* Left section - Banking Information */}
+          <div style={{ width: "50%", paddingRight: 20 }}>
+            <div style={{ display: "flex", marginBottom: 4 }}>
+              <div style={{ width: 100, fontWeight: 600 }}>BANK NAME</div>
+              <div>ABN AMRO BANK</div>
+            </div>
+            <div style={{ display: "flex", marginBottom: 4 }}>
+              <div style={{ width: 100, fontWeight: 600 }}>IBAN NUMBER</div>
+              <div>IBAN : NL88 ABNA 0128671513</div>
+            </div>
+            <div style={{ display: "flex", marginBottom: 4 }}>
+              <div style={{ width: 100, fontWeight: 600 }}>BIC/swift code</div>
+              <div>ABNANL2A</div>
+            </div>
+          </div>
+
+          {/* Right section - Company Identification */}
+          <div style={{ width: "50%", paddingLeft: 20 }}>
+            <div style={{ display: "flex", marginBottom: 4 }}>
+              <div style={{ width: 100, fontWeight: 600 }}>EORI-number</div>
+              <div>NL86564926139590111</div>
+            </div>
+            <div style={{ display: "flex", marginBottom: 4 }}>
+              <div style={{ width: 100, fontWeight: 600 }}>Our VAT Number</div>
+              <div>NL865649261B01</div>
+            </div>
+            <div style={{ display: "flex", marginBottom: 4 }}>
+              <div style={{ width: 100, fontWeight: 600 }}>Company Registra</div>
+              <div>91414350</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
