@@ -10,13 +10,20 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from "@/lib/theme-provider";
-import { useUser } from "@clerk/nextjs";
+import { useUser, useClerk } from "@clerk/nextjs";
 import React from "react";
 import { useCurrency } from "@/lib/currency-provider";
+import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+type Currency = "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY" | "MAD";
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { isLoaded, user } = useUser();
+  const { signOut } = useClerk();
+  const router = useRouter();
   const [dbUser, setDbUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -279,6 +286,26 @@ export default function SettingsPage() {
                   {success && <div className="text-green-600 mt-2">Updated!</div>}
                 </form>
               ) : null}
+              
+              <div className="mt-8 pt-6 border-t border-gray-200">
+                <div className="max-w-md">
+                  <h3 className="text-sm font-medium text-gray-900 mb-2">Sign Out</h3>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Sign out of your account. You will need to sign in again to access the application.
+                  </p>
+                  <Button
+                    variant="destructive"
+                    onClick={async () => {
+                      await signOut();
+                      router.push("/login");
+                    }}
+                    className="w-full sm:w-auto"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
