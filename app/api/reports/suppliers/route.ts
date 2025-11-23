@@ -40,6 +40,8 @@ export async function GET(request: Request) {
     let totalExpenses = 0;
     let pendingInvoices = 0;
     let pendingAmount = 0;
+    let averageDeliveryTime: number | null = null;
+    let reliabilityScore: number | null = null;
 
     try {
       const expensesQuery = `
@@ -67,6 +69,46 @@ export async function GET(request: Request) {
       
       pendingInvoices = (pending as { pendingInvoices: number; pendingAmount: number }).pendingInvoices;
       pendingAmount = (pending as { pendingInvoices: number; pendingAmount: number }).pendingAmount;
+
+      // Calculate average delivery time (only for delivered invoices with both dates)
+      const avgDeliveryTimeQuery = `
+        SELECT AVG(DATEDIFF(deliveryDate, dateCreated)) as avgDeliveryTime
+        FROM supplier_invoices
+        WHERE delivery_status = 'DELIVERED'
+          AND deliveryDate IS NOT NULL
+          AND dateCreated IS NOT NULL
+          AND deliveryDate >= dateCreated
+      `;
+      const avgDeliveryResult = await query(avgDeliveryTimeQuery);
+      if (Array.isArray(avgDeliveryResult) && avgDeliveryResult[0] && (avgDeliveryResult[0] as any).avgDeliveryTime !== null) {
+        averageDeliveryTime = Number((avgDeliveryResult[0] as any).avgDeliveryTime);
+      }
+
+      // Calculate reliability score based on:
+      // 1. Delivery completion rate (50% weight)
+      // 2. Payment compliance rate (50% weight)
+      const reliabilityQuery = `
+        SELECT 
+          COUNT(*) as totalInvoices,
+          SUM(CASE WHEN delivery_status = 'DELIVERED' THEN 1 ELSE 0 END) as deliveredInvoices,
+          SUM(CASE WHEN payment_status = 'PAID' THEN 1 ELSE 0 END) as paidInvoices
+        FROM supplier_invoices
+        WHERE dateCreated BETWEEN ? AND ?
+      `;
+      const reliabilityResult = await query(reliabilityQuery, [startDate, endDate]);
+      
+      if (Array.isArray(reliabilityResult) && reliabilityResult[0]) {
+        const stats = reliabilityResult[0] as { totalInvoices: number; deliveredInvoices: number; paidInvoices: number };
+        const total = Number(stats.totalInvoices) || 0;
+        
+        if (total > 0) {
+          const deliveryRate = (Number(stats.deliveredInvoices) || 0) / total;
+          const paymentRate = (Number(stats.paidInvoices) || 0) / total;
+          
+          // Combined score: 50% delivery rate + 50% payment rate, scaled to 0-100
+          reliabilityScore = Math.round((deliveryRate * 0.5 + paymentRate * 0.5) * 100);
+        }
+      }
     } catch (error) {
       // Table might not exist, use default values
       console.log("Supplier invoices table not found, using default values");
@@ -79,7 +121,9 @@ export async function GET(request: Request) {
       totalExpenses: Number(totalExpenses),
       pendingInvoices: Number(pendingInvoices),
       pendingAmount: Number(pendingAmount),
-      supplierEfficiency: totalSuppliers > 0 ? (activeSuppliers / totalSuppliers * 100) : 0
+      supplierEfficiency: totalSuppliers > 0 ? (activeSuppliers / totalSuppliers * 100) : 0,
+      averageDeliveryTime: averageDeliveryTime !== null ? Number(averageDeliveryTime.toFixed(1)) : null,
+      reliabilityScore: reliabilityScore !== null ? Number(reliabilityScore) : null
     });
 
   } catch (error) {

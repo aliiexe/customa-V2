@@ -70,11 +70,11 @@ export default function SupplierReports({ dateRange }: SupplierReportsProps) {
 
         const supplierData = await supplierResponse.json();
 
-        // Add some calculated values if not provided by API
+        // Use data from API (no hardcoded defaults)
         setData({
           ...supplierData,
-          reliabilityScore: supplierData.reliabilityScore || 87, // Default value if not provided
-          averageDeliveryTime: supplierData.averageDeliveryTime || 5.3, // Default value if not provided
+          reliabilityScore: supplierData.reliabilityScore ?? null,
+          averageDeliveryTime: supplierData.averageDeliveryTime ?? null,
         });
 
         // Get pending payment info from alerts
@@ -332,18 +332,28 @@ export default function SupplierReports({ dateRange }: SupplierReportsProps) {
                       Reliability Score
                     </span>
                     <span className="text-sm font-medium">
-                      {data?.reliabilityScore || 0}/100
+                      {data?.reliabilityScore !== null && data?.reliabilityScore !== undefined 
+                        ? `${data.reliabilityScore}/100` 
+                        : 'N/A'}
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div
-                      className="bg-green-600 h-2.5 rounded-full"
-                      style={{ width: `${data?.reliabilityScore || 0}%` }}
-                    ></div>
-                  </div>
-                  <p className="text-xs text-gray-500">
-                    Based on delivery time and quality
-                  </p>
+                  {data?.reliabilityScore !== null && data?.reliabilityScore !== undefined ? (
+                    <>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div
+                          className="bg-green-600 h-2.5 rounded-full"
+                          style={{ width: `${data.reliabilityScore}%` }}
+                        ></div>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Based on delivery completion and payment compliance
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-xs text-gray-500">
+                      No data available. Requires supplier invoices with delivery and payment status.
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -352,23 +362,33 @@ export default function SupplierReports({ dateRange }: SupplierReportsProps) {
                       Avg. Delivery Time
                     </span>
                     <span className="text-sm font-medium">
-                      {data?.averageDeliveryTime} days
+                      {data?.averageDeliveryTime !== null && data?.averageDeliveryTime !== undefined
+                        ? `${data.averageDeliveryTime} days`
+                        : 'N/A'}
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div
-                      className="bg-blue-600 h-2.5 rounded-full"
-                      style={{
-                        width: `${Math.min(
-                          100,
-                          ((data?.averageDeliveryTime || 0) / 10) * 100
-                        )}%`,
-                      }}
-                    ></div>
-                  </div>
-                  <p className="text-xs text-gray-500">
-                    From order to delivery
-                  </p>
+                  {data?.averageDeliveryTime !== null && data?.averageDeliveryTime !== undefined ? (
+                    <>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div
+                          className="bg-blue-600 h-2.5 rounded-full"
+                          style={{
+                            width: `${Math.min(
+                              100,
+                              ((data.averageDeliveryTime) / 10) * 100
+                            )}%`,
+                          }}
+                        ></div>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        From order to delivery
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-xs text-gray-500">
+                      No data available. Requires delivered supplier invoices.
+                    </p>
+                  )}
                 </div>
 
                 <Button
