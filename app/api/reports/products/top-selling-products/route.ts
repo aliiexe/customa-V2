@@ -27,28 +27,17 @@ export async function GET() {
 
     const topProducts = await query(topProductsQuery, [])
 
-    // Format the results
-    let formattedProducts = []
-    
-    if (Array.isArray(topProducts) && topProducts.length > 0) {
-      formattedProducts = topProducts.map((product: any) => ({
-        id: product.id,
-        name: product.name,
-        reference: product.reference,
-        sales: Number(product.totalSold),
-        totalRevenue: Number(product.totalRevenue),
-        currentStock: product.currentStock,
-      }))
-    } else {
-      // Return sample data if no products are found
-      formattedProducts = [
-        { name: "Shaker", sales: 32, totalRevenue: 640, currentStock: 15 },
-        { name: "Coffee Cup", sales: 24, totalRevenue: 480, currentStock: 8 },
-        { name: "Water Bottle", sales: 18, totalRevenue: 360, currentStock: 12 },
-        { name: "Thermos", sales: 15, totalRevenue: 450, currentStock: 5 },
-        { name: "Insulated Mug", sales: 12, totalRevenue: 300, currentStock: 10 }
-      ]
-    }
+    // Format the results - return empty array if no data
+    const formattedProducts = Array.isArray(topProducts) && topProducts.length > 0
+      ? topProducts.map((product: any) => ({
+          id: product.id,
+          name: product.name,
+          reference: product.reference,
+          sales: Number(product.totalSold),
+          totalRevenue: Number(product.totalRevenue),
+          currentStock: product.currentStock,
+        }))
+      : []
 
     return NextResponse.json(formattedProducts)
   } catch (error) {

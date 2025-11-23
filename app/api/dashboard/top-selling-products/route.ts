@@ -29,38 +29,25 @@ export async function GET() {
 
     const topProducts = await query(topProductsQuery, [])
 
-    // Check if we have actual data
-    if (Array.isArray(topProducts) && topProducts.length > 0) {
-      const formattedProducts = topProducts.map((product: any) => ({
-        id: product.id,
-        name: product.name,
-        reference: product.reference,
-        sales: Number(product.totalSold),
-        totalRevenue: Number(product.totalRevenue),
-        currentStock: product.currentStock,
-      }))
-      return NextResponse.json(formattedProducts)
-    } else {
-      // Return sample data if no real sales exist
-      const sampleData = [
-        { name: "Shaker", sales: 32, totalRevenue: 640, currentStock: 15 },
-        { name: "Printer Laser", sales: 24, totalRevenue: 480, currentStock: 8 },
-        { name: "Test", sales: 18, totalRevenue: 360, currentStock: 12 },
-        { name: "Water Bottle", sales: 15, totalRevenue: 450, currentStock: 5 },
-        { name: "Coffee Cup", sales: 12, totalRevenue: 300, currentStock: 10 }
-      ]
-      return NextResponse.json(sampleData)
-    }
+    // Format the results - return empty array if no data
+    const formattedProducts = Array.isArray(topProducts) && topProducts.length > 0
+      ? topProducts.map((product: any) => ({
+          id: product.id,
+          name: product.name,
+          reference: product.reference,
+          sales: Number(product.totalSold),
+          totalRevenue: Number(product.totalRevenue),
+          currentStock: product.currentStock,
+        }))
+      : []
+
+    return NextResponse.json(formattedProducts)
 
   } catch (error) {
     console.error("Error fetching top selling products:", error)
-    
-    // Return sample data on error
-    const sampleData = [
-      { name: "Shaker", sales: 32, totalRevenue: 640, currentStock: 15 },
-      { name: "Printer Laser", sales: 24, totalRevenue: 480, currentStock: 8 },
-      { name: "Test", sales: 18, totalRevenue: 360, currentStock: 12 }
-    ]
-    return NextResponse.json(sampleData)
+    return NextResponse.json(
+      { error: "Failed to fetch top selling products" },
+      { status: 500 }
+    )
   }
 }

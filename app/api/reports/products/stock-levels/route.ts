@@ -24,28 +24,17 @@ export async function GET() {
 
     const lowStockProducts = await query(lowStockQuery, [])
 
-    // Format the results
-    let formattedProducts = []
-    
-    if (Array.isArray(lowStockProducts) && lowStockProducts.length > 0) {
-      formattedProducts = lowStockProducts.map((product: any) => ({
-        id: product.id,
-        name: product.name,
-        reference: product.reference,
-        stock: product.stockQuantity,
-        category: product.category || "Uncategorized",
-        status: product.stockQuantity <= 5 ? "critical" : product.stockQuantity <= 10 ? "low" : "medium",
-      }))
-    } else {
-      // Return sample data if no products are found
-      formattedProducts = [
-        { name: "Coffee Cup", stock: 8, status: "low", category: "Drinkware" },
-        { name: "Thermos", stock: 5, status: "critical", category: "Drinkware" },
-        { name: "Water Bottle", stock: 12, status: "medium", category: "Drinkware" },
-        { name: "Cocktail Shaker", stock: 3, status: "critical", category: "Barware" },
-        { name: "Shot Glass", stock: 7, status: "low", category: "Glassware" }
-      ]
-    }
+    // Format the results - return empty array if no data
+    const formattedProducts = Array.isArray(lowStockProducts) && lowStockProducts.length > 0
+      ? lowStockProducts.map((product: any) => ({
+          id: product.id,
+          name: product.name,
+          reference: product.reference,
+          stock: product.stockQuantity,
+          category: product.category || "Uncategorized",
+          status: product.stockQuantity <= 5 ? "critical" : product.stockQuantity <= 10 ? "low" : "medium",
+        }))
+      : []
 
     return NextResponse.json(formattedProducts)
   } catch (error) {
